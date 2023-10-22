@@ -2,6 +2,8 @@
 
 A Golang-based virtual dom.
 
+Live demo https://goat-two.vercel.app/
+
 ## Steps to run locally
 1. Clone the repository `git clone https://github.com/hdck007/goat.git`
 2. navigate inside the repository `cd goat`
