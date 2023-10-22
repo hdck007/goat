@@ -1,9 +1,10 @@
 <!doctype html>
 <html>
-
 <head>
 	<title>goat</title>
 	<meta charset="utf-8">
+	<!-- viewport -->
+	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<script src="wasm_exec.js"></script>
 	<script>
 		if (!WebAssembly.instantiateStreaming) { // polyfill
@@ -21,7 +22,11 @@
 </head>
 
 <body >
-	<button id="increment">Increment</button>
-	<div id="root" ></div>
+	<h2>Welcome! This is a sample web page that renders a button using the GoLang virtual DOM I've created.</h2>
+	<p>The virtual DOM is currently an experiment, and I know there is a lot of room for optimization. However, I believe it's a good starting point.</p>
+	<p>The main reason I'm building it is to learn more about virtual DOMs and GoLang.</p>
+	<button id="increment" >Increment</button>
+	<p>The below html is rendered using the Virtual DOM</p>
+	<div id="root"></div>
 </body>
 </html>

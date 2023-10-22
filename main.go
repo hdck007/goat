@@ -27,7 +27,6 @@ type Edits struct {
 type Block struct {
 	props Props
 	edits *[]Edits
-
 	patch func(Block)
 	mount func(js.Value)
 }
@@ -67,7 +66,7 @@ func createVirtualElements(
 func (proxy *Props) render(
 	element VElement,
 	edits *[]Edits,
-	path *[]int,
+	path []int,
 ) js.Value {
 
 	document := js.Global().Get("document")
@@ -81,12 +80,11 @@ func (proxy *Props) render(
 
 	if element.props != nil {
 		for k, v := range element.props {
-
 			_, ok := (*proxy)[k]
 			if ok {
 				*edits = append(*edits, Edits{
 					editType:  "attribute",
-					path:      *path,
+					path:      path,
 					attribute: k,
 					index:     -1,
 					hole:      v.(Hole).key,
@@ -102,15 +100,17 @@ func (proxy *Props) render(
 		if ok {
 			*edits = append(*edits, Edits{
 				editType:    "child",
-				path:        *path,
+				path:        path,
 				index:       childIndex,
 				hole:        child.key,
 				elementType: child.elementType,
 			})
 			continue
 		}
-		*path = append(*path, childIndex)
-		el.Call("appendChild", proxy.render(child, edits, path))
+		newPath := make([]int, len(path))
+		copy(newPath, path)
+		newPath = append(newPath, childIndex)
+		el.Call("appendChild", proxy.render(child, edits, newPath))
 	}
 
 	return el
@@ -126,7 +126,7 @@ func blockElement(fn func(proxy *Props, originalProp Props) VElement, props Prop
 
 	path := make([]int, 0)
 
-	root := proxy.render(vnode, &edits, &path)
+	root := proxy.render(vnode, &edits, path)
 
 	return func(prop Props) Block {
 
@@ -140,10 +140,9 @@ func blockElement(fn func(proxy *Props, originalProp Props) VElement, props Prop
 
 			for editIndex, edit := range edits {
 				thisEl := el
-
 				for _, path := range edit.path {
 					elementChild := thisEl.Get("childNodes")
-					thisEl = elementChild.Call("item", path)
+					thisEl = elementChild.Index(path)
 				}
 
 				elements[editIndex] = thisEl
@@ -157,11 +156,9 @@ func blockElement(fn func(proxy *Props, originalProp Props) VElement, props Prop
 						value.(*Block).mount(thisEl)
 						continue
 					}
-
 					textNode := js.Global().Get("document").Call("createTextNode", value)
-					thisEl.Call("insertBefore", textNode, thisEl.Get("childNodes").Call("item", edit.index))
+					thisEl.Call("insertBefore", textNode, thisEl.Get("childNodes").Index(edit.index))
 				}
-
 			}
 		}
 
@@ -202,25 +199,37 @@ func blockElement(fn func(proxy *Props, originalProp Props) VElement, props Prop
 func main() {
 	value := 0
 
-	Button := blockElement(func(proxy *Props, prop Props) VElement {
-		element := createVirtualElements(
-			"root",
-			"button",
-			nil,
-			"",
+	Div := blockElement(func(proxy *Props, prop Props) VElement {
+		childElements := []VElement{
+			createVirtualElements(
+				"",
+				"text",
+				nil,
+				"The current value is ",
+				VElement{},
+			),
 			createVirtualElements(
 				"number",
 				"text",
 				nil,
 				prop[proxy.Get("number").key],
 				VElement{},
-			))
+			),
+		}
+
+		element := createVirtualElements(
+			"root",
+			"div",
+			nil,
+			"",
+			childElements...,
+		)
 		return element
 	}, map[string]any{
 		"number": value,
 	})
 
-	button := Button(map[string]any{
+	div := Div(map[string]any{
 		"number": 1,
 	})
 
@@ -228,13 +237,13 @@ func main() {
 	var cb js.Func
 	cb = js.FuncOf(func(this js.Value, args []js.Value) interface{} {
 		value++
-		button.patch(Button(map[string]any{
+		div.patch(Div(map[string]any{
 			"number": value,
 		}))
 		return nil
 	})
 	js.Global().Get("document").Call("getElementById", "increment").Call("addEventListener", "click", cb)
-	button.mount(body)
+	div.mount(body)
 
 	select {}
 }
