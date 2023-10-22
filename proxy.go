@@ -4,13 +4,12 @@ type Hole struct {
 	key string
 }
 
-type Proxy map[string]Hole
+type Props map[string]any
 
 func (proxy *Props) Get(key string) Hole {
 	currentElement := Hole{
 		key: key,
 	}
 	(*proxy)[key] = currentElement
-
 	return currentElement
 }
