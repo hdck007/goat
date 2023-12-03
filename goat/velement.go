@@ -1,4 +1,4 @@
-package main
+package goat
 
 type VElement struct {
 	elementType string
@@ -8,7 +8,7 @@ type VElement struct {
 	key         string
 }
 
-func createVirtualElements(
+func CreateVirtualElements(
 	key string,
 	elementType string,
 	props Props,

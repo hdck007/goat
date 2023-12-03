@@ -1,14 +1,14 @@
-package main
+package goat
 
 type Hole struct {
-	key string
+	Key string
 }
 
 type Props map[string]any
 
 func (proxy *Props) Get(key string) Hole {
 	currentElement := Hole{
-		key: key,
+		Key: key,
 	}
 	(*proxy)[key] = currentElement
 	return currentElement

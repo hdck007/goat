@@ -2,30 +2,32 @@ package main
 
 import (
 	"syscall/js"
+
+	"github.com/hdck007/goat/goat"
 )
 
 func main() {
 	value := 0
 
-	Div := blockElement(func(proxy *Props, prop Props) VElement {
-		childElements := []VElement{
-			createVirtualElements(
+	Div := goat.BlockElement(func(proxy *goat.Props, prop goat.Props) goat.VElement {
+		childElements := []goat.VElement{
+			goat.CreateVirtualElements(
 				"",
 				"text",
 				nil,
 				"The current value is ",
-				VElement{},
+				goat.VElement{},
 			),
-			createVirtualElements(
+			goat.CreateVirtualElements(
 				"number",
 				"text",
 				nil,
-				prop[proxy.Get("number").key],
-				VElement{},
+				prop[proxy.Get("number").Key],
+				goat.VElement{},
 			),
 		}
 
-		element := createVirtualElements(
+		element := goat.CreateVirtualElements(
 			"root",
 			"div",
 			nil,
@@ -45,13 +47,13 @@ func main() {
 	var cb js.Func
 	cb = js.FuncOf(func(this js.Value, args []js.Value) interface{} {
 		value++
-		div.patch(Div(map[string]any{
+		div.Patch(Div(map[string]any{
 			"number": value,
 		}))
 		return nil
 	})
 	js.Global().Get("document").Call("getElementById", "increment").Call("addEventListener", "click", cb)
-	div.mount(body)
+	div.Mount(body)
 
 	select {}
 }

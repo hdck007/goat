@@ -1,4 +1,4 @@
-package main
+package goat
 
 import (
 	"reflect"
@@ -8,11 +8,11 @@ import (
 type Block struct {
 	props Props
 	edits *[]Edits
-	patch func(Block)
-	mount func(js.Value)
+	Patch func(Block)
+	Mount func(js.Value)
 }
 
-func blockElement(fn func(proxy *Props, originalProp Props) VElement, props Props) func(prop Props) Block {
+func BlockElement(fn func(proxy *Props, originalProp Props) VElement, props Props) func(prop Props) Block {
 
 	proxy := make(Props)
 
@@ -22,7 +22,7 @@ func blockElement(fn func(proxy *Props, originalProp Props) VElement, props Prop
 
 	path := make([]int, 0)
 
-	root := proxy.render(vnode, &edits, path)
+	root := proxy.Render(vnode, &edits, path)
 
 	return func(prop Props) Block {
 
@@ -49,7 +49,7 @@ func blockElement(fn func(proxy *Props, originalProp Props) VElement, props Prop
 					thisEl.Call("setAttribute", edit.attribute, value)
 				} else if edit.editType == "child" {
 					if reflect.TypeOf(value).String() == "main.Block" {
-						value.(*Block).mount(thisEl)
+						value.(*Block).Mount(thisEl)
 						continue
 					}
 					textNode := js.Global().Get("document").Call("createTextNode", value)
@@ -73,7 +73,7 @@ func blockElement(fn func(proxy *Props, originalProp Props) VElement, props Prop
 					thisEl.Call("setAttribute", edit.attribute, newValue)
 				} else if edit.editType == "child" {
 					if reflect.TypeOf(value).String() == "main.Block" {
-						value.(*Block).patch((*newBlock.edits)[editIndex].hole.(Block))
+						value.(*Block).Patch((*newBlock.edits)[editIndex].hole.(Block))
 						continue
 					}
 					thisEl.Get("childNodes").Call("item", edit.index).Set("textContent", newValue)
@@ -85,8 +85,8 @@ func blockElement(fn func(proxy *Props, originalProp Props) VElement, props Prop
 		return Block{
 			props: prop,
 			edits: &edits,
-			patch: patch,
-			mount: mount,
+			Patch: patch,
+			Mount: mount,
 		}
 	}
 

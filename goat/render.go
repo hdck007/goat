@@ -1,8 +1,8 @@
-package main
+package goat
 
 import "syscall/js"
 
-func (proxy *Props) render(
+func (proxy *Props) Render(
 	element VElement,
 	edits *[]Edits,
 	path []int,
@@ -26,7 +26,7 @@ func (proxy *Props) render(
 					path:      path,
 					attribute: k,
 					index:     -1,
-					hole:      v.(Hole).key,
+					hole:      v.(Hole).Key,
 				})
 				continue
 			}
@@ -49,7 +49,7 @@ func (proxy *Props) render(
 		newPath := make([]int, len(path))
 		copy(newPath, path)
 		newPath = append(newPath, childIndex)
-		el.Call("appendChild", proxy.render(child, edits, newPath))
+		el.Call("appendChild", proxy.Render(child, edits, newPath))
 	}
 
 	return el
