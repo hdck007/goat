@@ -1,0 +1,7 @@
+<script type="script/go">
+    count := 2
+</script>
+
+<div>
+    <h1>{count}</h1>
+</div>
