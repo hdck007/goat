@@ -8,7 +8,7 @@ import (
 
 func start() {
 
-	TEXT924 := goat.BlockElement(func(proxy *goat.Props, prop goat.Props) goat.VElement {
+	TEXT654 := goat.BlockElement(func(proxy *goat.Props, prop goat.Props) goat.VElement {
 		element := goat.CreateVirtualElements(
 			"",
 			"text",
@@ -18,9 +18,9 @@ func start() {
 		)
 		return element
 	}, map[string]any{})
-	text763 := TEXT924(map[string]any{})
-	H1670 := goat.BlockElement(func(proxy *goat.Props, prop goat.Props) goat.VElement {
-		childElements := []goat{text763}
+	text558 := TEXT654(map[string]any{})
+	H1103 := goat.BlockElement(func(proxy *goat.Props, prop goat.Props) goat.VElement {
+		childElements := []goat.VElement{text558}
 		element := goat.CreateVirtualElements(
 			"",
 			"h1",
@@ -30,9 +30,9 @@ func start() {
 		)
 		return element
 	}, map[string]any{})
-	h138 := H1670(map[string]any{})
-	DIV643 := goat.BlockElement(func(proxy *goat.Props, prop goat.Props) goat.VElement {
-		childElements := []goat{h138}
+	h1277 := H1103(map[string]any{})
+	DIV391 := goat.BlockElement(func(proxy *goat.Props, prop goat.Props) goat.VElement {
+		childElements := []goat.VElement{h1277}
 		element := goat.CreateVirtualElements(
 			"",
 			"div",
@@ -42,9 +42,9 @@ func start() {
 		)
 		return element
 	}, map[string]any{})
-	div343 := DIV643(map[string]any{})
+	div400 := DIV391(map[string]any{})
 	body := js.Global().Get("document").Call("getElementById", "root")
-	div343.Mount(body)
+	div400.Mount(body)
 
 	select {}
 }

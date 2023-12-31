@@ -75,7 +75,7 @@ func createCodeForContainerNodes(node *html.Node) (*bytes.Buffer, string) {
 	finalCode, err := codeTemplate.Parse(`
 	{{.ChildCode}}
 	{{.ComponentName}} := goat.BlockElement(func(proxy *goat.Props, prop goat.Props) goat.VElement {
-		childElements := []goat{{.ChildVariables}}
+		childElements := []goat.VElement{{.ChildVariables}}
 		element := goat.CreateVirtualElements(
 			"",
 			"{{.ComponentType}}",
