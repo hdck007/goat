@@ -34,6 +34,10 @@ func (proxy *Props) Render(
 		}
 	}
 
+	if element.children == nil {
+		return el
+	}
+
 	for childIndex, child := range element.children {
 		_, ok := (*proxy)[child.key]
 		if ok {

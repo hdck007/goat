@@ -9,7 +9,7 @@ type Block struct {
 	props Props
 	edits *[]Edits
 	Patch func(Block)
-	Mount func(js.Value)
+	Mount func(js.Value) js.Value
 }
 
 func BlockElement(fn func(proxy *Props, originalProp Props) VElement, props Props) func(prop Props) Block {
@@ -28,10 +28,11 @@ func BlockElement(fn func(proxy *Props, originalProp Props) VElement, props Prop
 
 		elements := make([]js.Value, len(edits))
 
-		mount := func(parent js.Value) {
+		mount := func(parent js.Value) js.Value {
 			el := root.Call("cloneNode", true)
 
-			parent.Set("textContent", "")
+			// I may not completely understand this yet
+			// parent.Set("textContent", "")
 			parent.Call("appendChild", el)
 
 			for editIndex, edit := range edits {
@@ -56,6 +57,8 @@ func BlockElement(fn func(proxy *Props, originalProp Props) VElement, props Prop
 					thisEl.Call("insertBefore", textNode, thisEl.Get("childNodes").Index(edit.index))
 				}
 			}
+
+			return el
 		}
 
 		patch := func(newBlock Block) {

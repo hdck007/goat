@@ -24,6 +24,15 @@ func CreateVirtualElements(
 			key:         key,
 		}
 	}
+	if len(children) == 0 {
+		return VElement{
+			elementType: elementType,
+			props:       props,
+			children:    nil,
+			text:        nil,
+			key:         key,
+		}
+	}
 	return VElement{
 		elementType: elementType,
 		props:       props,
