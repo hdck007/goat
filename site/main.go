@@ -7,53 +7,72 @@ import (
 )
 
 func main() {
-	value := 0
 
-	Div := goat.BlockElement(func(proxy *goat.Props, prop goat.Props) goat.VElement {
-		childElements := []goat.VElement{
-			goat.CreateVirtualElements(
-				"",
-				"text",
-				nil,
-				"The current value is ",
-				goat.VElement{},
-			),
-			goat.CreateVirtualElements(
-				"number",
-				"text",
-				nil,
-				prop[proxy.Get("number").Key],
-				goat.VElement{},
-			),
-		}
+	name := "John"
 
+	body := js.Global().Get("document").Call("getElementById", "root")
+
+	DIV544 := goat.BlockElement(func(proxy *goat.Props, prop goat.Props) goat.VElement {
 		element := goat.CreateVirtualElements(
-			"root",
+			"",
 			"div",
 			nil,
 			"",
-			childElements...,
 		)
 		return element
-	}, map[string]any{
-		"number": value,
-	})
+	}, map[string]any{})
+	div379 := DIV544(map[string]any{})
+	div368 := div379.Mount(body)
 
-	div := Div(map[string]any{
-		"number": 1,
-	})
+	H1758 := goat.BlockElement(func(proxy *goat.Props, prop goat.Props) goat.VElement {
+		element := goat.CreateVirtualElements(
+			"",
+			"h1",
+			map[string]any{
+				"class": "text-red",
+			},
+			"",
+		)
+		return element
+	}, map[string]any{})
+	h1917 := H1758(map[string]any{})
+	h1275 := h1917.Mount(div368)
 
-	body := js.Global().Get("document").Call("getElementById", "root")
-	var cb js.Func
-	cb = js.FuncOf(func(this js.Value, args []js.Value) interface{} {
-		value++
-		div.Patch(Div(map[string]any{
-			"number": value,
-		}))
-		return nil
-	})
-	js.Global().Get("document").Call("getElementById", "increment").Call("addEventListener", "click", cb)
-	div.Mount(body)
+	TEXT71 := goat.BlockElement(func(proxy *goat.Props, prop goat.Props) goat.VElement {
+		element := goat.CreateVirtualElements(
+			"",
+			"text",
+			nil,
+			"    Hello ",
+		)
+		return element
+	}, map[string]any{})
+	text191 := TEXT71(map[string]any{})
+	text191.Mount(h1275)
+
+	TEXT688 := goat.BlockElement(func(proxy *goat.Props, prop goat.Props) goat.VElement {
+		element := goat.CreateVirtualElements(
+			"",
+			"text",
+			nil,
+			prop[proxy.Get("name").Key],
+		)
+		return element
+	}, map[string]any{"name": name})
+	text116 := TEXT688(map[string]any{})
+	text116.Mount(h1275)
+
+	TEXT201 := goat.BlockElement(func(proxy *goat.Props, prop goat.Props) goat.VElement {
+		element := goat.CreateVirtualElements(
+			"",
+			"text",
+			nil,
+			", How are you?    ",
+		)
+		return element
+	}, map[string]any{})
+	text305 := TEXT201(map[string]any{})
+	text305.Mount(h1275)
 
 	select {}
 }

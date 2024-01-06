@@ -8,43 +8,71 @@ import (
 
 func start() {
 
-	TEXT654 := goat.BlockElement(func(proxy *goat.Props, prop goat.Props) goat.VElement {
-		element := goat.CreateVirtualElements(
-			"",
-			"text",
-			nil,
-			"1",
-			goat.VElement{},
-		)
-		return element
-	}, map[string]any{})
-	text558 := TEXT654(map[string]any{})
-	H1103 := goat.BlockElement(func(proxy *goat.Props, prop goat.Props) goat.VElement {
-		childElements := []goat.VElement{text558}
-		element := goat.CreateVirtualElements(
-			"",
-			"h1",
-			nil,
-			"",
-			childElements...,
-		)
-		return element
-	}, map[string]any{})
-	h1277 := H1103(map[string]any{})
-	DIV391 := goat.BlockElement(func(proxy *goat.Props, prop goat.Props) goat.VElement {
-		childElements := []goat.VElement{h1277}
+	count := "Hello"
+
+	body := js.Global().Get("document").Call("getElementById", "root")
+
+	DIV52 := goat.BlockElement(func(proxy *goat.Props, prop goat.Props) goat.VElement {
 		element := goat.CreateVirtualElements(
 			"",
 			"div",
 			nil,
 			"",
-			childElements...,
 		)
 		return element
 	}, map[string]any{})
-	div400 := DIV391(map[string]any{})
-	body := js.Global().Get("document").Call("getElementById", "root")
-	div400.Mount(body)
+	div233 := DIV52(map[string]any{})
+	div433 := div233.Mount(body)
+
+	H1589 := goat.BlockElement(func(proxy *goat.Props, prop goat.Props) goat.VElement {
+		element := goat.CreateVirtualElements(
+			"",
+			"h1",
+			map[string]any{
+				"class": "text-red",
+			},
+			"",
+		)
+		return element
+	}, map[string]any{})
+	h1844 := H1589(map[string]any{})
+	h1308 := h1844.Mount(div433)
+
+	TEXT587 := goat.BlockElement(func(proxy *goat.Props, prop goat.Props) goat.VElement {
+		element := goat.CreateVirtualElements(
+			"",
+			"text",
+			nil,
+			"    ",
+		)
+		return element
+	}, map[string]any{})
+	text206 := TEXT587(map[string]any{})
+	text206.Mount(h1308)
+
+	TEXT669 := goat.BlockElement(func(proxy *goat.Props, prop goat.Props) goat.VElement {
+		element := goat.CreateVirtualElements(
+			"",
+			"text",
+			nil,
+			prop[proxy.Get("count").Key],
+		)
+		return element
+	}, map[string]any{"count": count})
+	text23 := TEXT669(map[string]any{})
+	text23.Mount(h1308)
+
+	TEXT532 := goat.BlockElement(func(proxy *goat.Props, prop goat.Props) goat.VElement {
+		element := goat.CreateVirtualElements(
+			"",
+			"text",
+			nil,
+			" World!    ",
+		)
+		return element
+	}, map[string]any{})
+	text561 := TEXT532(map[string]any{})
+	text561.Mount(h1308)
 
 	select {}
 }

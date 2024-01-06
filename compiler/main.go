@@ -5,6 +5,7 @@ import (
 	"log"
 	"math/rand"
 	"os"
+	"regexp"
 	"strconv"
 	"strings"
 	"text/template"
@@ -13,8 +14,11 @@ import (
 	"golang.org/x/net/html/atom"
 )
 
-func createCodeForTextNodes(node *html.Node) (*bytes.Buffer, string) {
+func createCodeForTextNodes(text string, parentHtml string) (*bytes.Buffer, []string) {
 	codeTemplate := template.New("code")
+	variableName := "text" + strconv.Itoa(rand.Intn(1000))
+	binding := variableName + ".Mount(" + parentHtml + ")"
+	variableNames := []string{}
 
 	finalCode, err := codeTemplate.Parse(`
 	{{.ComponentName}} := goat.BlockElement(func(proxy *goat.Props, prop goat.Props) goat.VElement {
@@ -22,12 +26,13 @@ func createCodeForTextNodes(node *html.Node) (*bytes.Buffer, string) {
 			"",
 			"text",
 			nil,
-			"{{.data}}",
-			goat.VElement{},
+			{{.data}},
 		)
 		return element
-	}, map[string]any{})
-	{{.VariableName}} := {{.ComponentName}}(map[string]any{})`)
+	}, {{.Props}})
+	{{.VariableName}} := {{.ComponentName}}(map[string]any{})
+	{{.Binding}}
+	`)
 
 	if err != nil {
 		log.Fatalf("Parse error: %s", err)
@@ -35,57 +40,104 @@ func createCodeForTextNodes(node *html.Node) (*bytes.Buffer, string) {
 
 	code := bytes.NewBuffer([]byte{})
 
-	variableName := "text" + strconv.Itoa(rand.Intn(1000))
+	r, _ := regexp.Compile("{.*}")
+
+	match := r.MatchString(text)
+
+	if match {
+		dynamic := r.FindString(text)
+		textNodes := strings.Split(text, dynamic)
+
+		for i, node := range textNodes {
+
+			if node != "" {
+				currentTextNodeCode, _ := createCodeForTextNodes(node, parentHtml)
+				code.WriteString(currentTextNodeCode.String())
+			}
+			if i != len(textNodes)-1 {
+				dynamicName := strings.TrimSuffix(strings.TrimPrefix(dynamic, "{"), "}")
+				finalCode.Execute(code, map[string]string{
+					"ComponentName": "TEXT" + strconv.Itoa(rand.Intn(1000)),
+					"ComponentType": "text",
+					"VariableName":  variableName,
+					"data":          "prop[proxy.Get(\"" + strings.ReplaceAll(dynamicName, "\n", "") + "\").Key]",
+					"Binding":       binding,
+					"Props":         "map[string]any{" + "\"" + strings.ReplaceAll(dynamicName, "\n", "") + "\"" + ": " + strings.ReplaceAll(dynamicName, "\n", "") + "}",
+				})
+			}
+		}
+
+		return code, variableNames
+	}
 
 	finalCode.Execute(code, map[string]string{
 		"ComponentName": "TEXT" + strconv.Itoa(rand.Intn(1000)),
 		"ComponentType": "text",
 		"VariableName":  variableName,
-		"data":          node.Data,
+		"data":          "\"" + strings.ReplaceAll(text, "\n", "") + "\"",
+		"Binding":       binding,
+		"Props":         "map[string]any{}",
 	})
 
-	return code, variableName
+	return code, variableNames
 }
 
-func createCodeForContainerNodes(node *html.Node) (*bytes.Buffer, string) {
-	codeTemplate := template.New("code")
+func createCodeForContainerNodes(node *html.Node, parentHtml string) (*bytes.Buffer, string) {
 
-	childcode := ""
-	childvariables := "{"
+	if node.Type == 1 {
+		return nil, ""
+	}
+
+	codeTemplate := template.New("code")
+	variableName := strings.ToLower(node.Data) + strconv.Itoa(rand.Intn(1000))
+	htmlReferenceVariableName := strings.ToLower(node.Data) + strconv.Itoa(rand.Intn(1000))
+
+	props := ""
+	if len(node.Attr) > 0 {
+		props += "map[string]any{" + "\n"
+		for _, attr := range node.Attr {
+			props += "\"" + attr.Key + "\": \"" + attr.Val + "\",\n"
+		}
+		props += "}"
+	} else {
+		props = "nil"
+	}
+
+	binding := htmlReferenceVariableName + " := " + variableName + ".Mount(" + parentHtml + ")"
+
+	childCode := ""
+	childBindings := ""
 
 	for c := node.FirstChild; c != nil; c = c.NextSibling {
 		if strings.TrimSpace(c.Data) != "" {
 			if c.Type != html.TextNode {
-				code, variableName := createCodeForContainerNodes(c)
+				code, _ := createCodeForContainerNodes(c, htmlReferenceVariableName)
 				if code != nil {
-					childcode += code.String()
-					childvariables += variableName + ", "
+					childCode += code.String()
 				}
 			} else {
-				code, variableName := createCodeForTextNodes(c)
+				code, _ := createCodeForTextNodes(c.Data, htmlReferenceVariableName)
 				if code != nil {
-					childcode += code.String()
-					childvariables += variableName + ", "
+					childCode += code.String()
 				}
 			}
 		}
 	}
-	childvariables = strings.TrimSuffix(childvariables, ", ") + "}"
 
 	finalCode, err := codeTemplate.Parse(`
-	{{.ChildCode}}
 	{{.ComponentName}} := goat.BlockElement(func(proxy *goat.Props, prop goat.Props) goat.VElement {
-		childElements := []goat.VElement{{.ChildVariables}}
 		element := goat.CreateVirtualElements(
 			"",
 			"{{.ComponentType}}",
-			nil,
+			{{.Props}},
 			"",
-			childElements...,
 		)
 		return element
 	}, map[string]any{})
-	{{.VariableName}} := {{.ComponentName}}(map[string]any{})`)
+	{{.VariableName}} := {{.ComponentName}}(map[string]any{})
+	{{.Binding}}
+	{{.ChildCode}}
+	`)
 
 	if err != nil {
 		log.Fatalf("Parse error: %s", err)
@@ -93,20 +145,32 @@ func createCodeForContainerNodes(node *html.Node) (*bytes.Buffer, string) {
 
 	code := bytes.NewBuffer([]byte{})
 
-	variableName := strings.ToLower(node.Data) + strconv.Itoa(rand.Intn(1000))
-
 	finalCode.Execute(code, map[string]string{
-		"ComponentName":  strings.ToUpper(node.Data) + strconv.Itoa(rand.Intn(1000)),
-		"ComponentType":  node.Data,
-		"VariableName":   variableName,
-		"ChildCode":      childcode,
-		"ChildVariables": childvariables,
+		"ComponentName": strings.ToUpper(node.Data) + strconv.Itoa(rand.Intn(1000)),
+		"ComponentType": node.Data,
+		"VariableName":  variableName,
+		"ChildCode":     childCode,
+		"ChildBindings": childBindings,
+		"Binding":       binding,
+		"Props":         props,
 	})
 
 	return code, variableName
 }
 
-func createBoilerPlate(componentsCode string, rootVariableName string) {
+func returnCodeForScriptNode(node *html.Node) string {
+	code := ""
+
+	for c := node.FirstChild; c != nil; c = c.NextSibling {
+		if strings.TrimSpace(c.Data) != "" {
+			code += c.Data + "\n"
+		}
+	}
+
+	return code
+}
+
+func createBoilerPlate(componentsCode string, rootVariableName string, scriptCode string) {
 
 	boilerplate := template.New("boilerplate")
 
@@ -119,10 +183,9 @@ func createBoilerPlate(componentsCode string, rootVariableName string) {
 	)
 	
 	func start() {
-		{{.ComponentsCode}}
+		{{.Script}}
 		body := js.Global().Get("document").Call("getElementById", "root")
-		{{.RootVariableName}}.Mount(body)
-
+		{{.ComponentsCode}}
 		select {}
 	}
 	`)
@@ -136,6 +199,7 @@ func createBoilerPlate(componentsCode string, rootVariableName string) {
 	boilerplate.Execute(code, map[string]string{
 		"ComponentsCode":   componentsCode,
 		"RootVariableName": rootVariableName,
+		"Script":           scriptCode,
 	})
 
 	os.WriteFile("example.go", code.Bytes(), 0644)
@@ -158,15 +222,21 @@ func main() {
 
 	componentsCode := ""
 
+	scriptCode := ""
+
 	rootVariableName := ""
 
 	for _, node := range n {
-		code, variableName := createCodeForContainerNodes(node)
+		if node.Type == html.ElementNode && node.Data == "script" {
+			scriptCode += returnCodeForScriptNode(node)
+			continue
+		}
+		code, variableName := createCodeForContainerNodes(node, "body")
 		rootVariableName = variableName
 		if code != nil {
 			componentsCode += code.String()
 		}
 	}
 
-	createBoilerPlate(componentsCode, rootVariableName)
+	createBoilerPlate(componentsCode, rootVariableName, scriptCode)
 }
