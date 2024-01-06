@@ -1,32 +1,30 @@
-<!doctype html>
+<!DOCTYPE html>
 <html>
-<head>
-	<title>goat</title>
-	<meta charset="utf-8">
-	<!-- viewport -->
-	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<script src="wasm_exec.js"></script>
-	<script>
-		if (!WebAssembly.instantiateStreaming) { // polyfill
-			WebAssembly.instantiateStreaming = async (resp, importObject) => {
-				const source = await (await resp).arrayBuffer();
-				return await WebAssembly.instantiate(source, importObject);
-			};
-		}
-		const go = new Go();
-		WebAssembly.instantiateStreaming(fetch("main.wasm"), go.importObject).then((result) => {
-			go.run(result.instance);
-		});
-	</script>
-	
-</head>
+  <head>
+    <title>goat</title>
+    <meta charset="utf-8" />
+    <!-- viewport -->
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script src="wasm_exec.js"></script>
+    <script>
+      if (!WebAssembly.instantiateStreaming) {
+        // polyfill
+        WebAssembly.instantiateStreaming = async (resp, importObject) => {
+          const source = await (await resp).arrayBuffer();
+          return await WebAssembly.instantiate(source, importObject);
+        };
+      }
+      const go = new Go();
+      WebAssembly.instantiateStreaming(
+        fetch("main.wasm"),
+        go.importObject
+      ).then((result) => {
+        go.run(result.instance);
+      });
+    </script>
+  </head>
 
-<body >
-	<h2>Welcome! This is a sample web page that renders a button using the GoLang virtual DOM I've created.</h2>
-	<p>The virtual DOM is currently an experiment, and I know there is a lot of room for optimization. However, I believe it's a good starting point.</p>
-	<p>The main reason I'm building it is to learn more about virtual DOMs and GoLang.</p>
-	<button id="increment" >Click to increment</button>
-	<p>The below html is rendered using the Virtual DOM</p>
-	<div id="root"></div>
-</body>
+  <body>
+    <div id="root"></div>
+  </body>
 </html>

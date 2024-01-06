@@ -1,0 +1,9 @@
+<script>
+    count := "John"
+</script>
+
+<div>
+    <h1 class="text-red" >
+    Hello {name}, How are you?
+    </h1>
+</div>
