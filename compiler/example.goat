@@ -1,8 +1,15 @@
 <script>
-    count := "Hello"
+    name := "Hello"
+
+    updateName := func() interface{} {
+        name = "Mello"
+
+        return nil
+    }
 </script>
 
 <div>
+    <button @click=updateName>Click</button>
     <h1 class="text-red" >
     Hello {name}, How are you?
     </h1>

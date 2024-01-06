@@ -14,7 +14,9 @@ import (
 	"golang.org/x/net/html/atom"
 )
 
-func createCodeForTextNodes(text string, parentHtml string) (*bytes.Buffer, []string) {
+type DynamicMapping map[string][]string
+
+func createCodeForTextNodes(text string, parentHtml string, dynamicMap *DynamicMapping) (*bytes.Buffer, []string) {
 	codeTemplate := template.New("code")
 	variableName := "text" + strconv.Itoa(rand.Intn(1000))
 	binding := variableName + ".Mount(" + parentHtml + ")"
@@ -51,11 +53,12 @@ func createCodeForTextNodes(text string, parentHtml string) (*bytes.Buffer, []st
 		for i, node := range textNodes {
 
 			if node != "" {
-				currentTextNodeCode, _ := createCodeForTextNodes(node, parentHtml)
+				currentTextNodeCode, _ := createCodeForTextNodes(node, parentHtml, dynamicMap)
 				code.WriteString(currentTextNodeCode.String())
 			}
 			if i != len(textNodes)-1 {
 				dynamicName := strings.TrimSuffix(strings.TrimPrefix(dynamic, "{"), "}")
+				(*dynamicMap)[dynamicName] = append((*dynamicMap)[dynamicName], variableName)
 				finalCode.Execute(code, map[string]string{
 					"ComponentName": "TEXT" + strconv.Itoa(rand.Intn(1000)),
 					"ComponentType": "text",
@@ -82,21 +85,53 @@ func createCodeForTextNodes(text string, parentHtml string) (*bytes.Buffer, []st
 	return code, variableNames
 }
 
-func createCodeForContainerNodes(node *html.Node, parentHtml string) (*bytes.Buffer, string) {
+func createCodeForContainerNodes(node *html.Node, parentHtml string, dynamicMap *DynamicMapping) (*bytes.Buffer, string) {
 
 	if node.Type == 1 {
 		return nil, ""
 	}
 
 	codeTemplate := template.New("code")
+	functionCodeTemplate, functionTemplateErr := template.New("function").Parse(`
+		var {{.VariableName}} js.Func
+		cb = js.FuncOf(func(this js.Value, args []js.Value) interface{} {
+			{{.FunctionName}}()
+			{{.UpdateBindings}}
+			return nil
+		})
+		{{.VariableName}}.Call("addEventListener", "{{.Event}}", cb)
+	`)
+
+	if functionTemplateErr != nil {
+		log.Fatalf("Parse error: %s", functionTemplateErr)
+	}
+
 	variableName := strings.ToLower(node.Data) + strconv.Itoa(rand.Intn(1000))
 	htmlReferenceVariableName := strings.ToLower(node.Data) + strconv.Itoa(rand.Intn(1000))
+	functionCode := bytes.NewBuffer([]byte{})
 
 	props := ""
 	if len(node.Attr) > 0 {
 		props += "map[string]any{" + "\n"
 		for _, attr := range node.Attr {
-			props += "\"" + attr.Key + "\": \"" + attr.Val + "\",\n"
+			if strings.Contains(attr.Key, "@") {
+				eventName := strings.ReplaceAll(attr.Key, "@", "")
+				functionName := attr.Val
+				functionVariableName := strings.ToLower(functionName) + strconv.Itoa(rand.Intn(1000))
+
+				// for dependentVariableName := range (*dynamicMap)[functionName] {
+
+				// }
+
+				functionCodeTemplate.Execute(functionCode, map[string]string{
+					"VariableName":   functionVariableName,
+					"FunctionName":   functionName,
+					"Event":          eventName,
+					"UpdateBindings": "",
+				})
+			} else {
+				props += "\"" + attr.Key + "\": \"" + attr.Val + "\",\n"
+			}
 		}
 		props += "}"
 	} else {
@@ -111,12 +146,12 @@ func createCodeForContainerNodes(node *html.Node, parentHtml string) (*bytes.Buf
 	for c := node.FirstChild; c != nil; c = c.NextSibling {
 		if strings.TrimSpace(c.Data) != "" {
 			if c.Type != html.TextNode {
-				code, _ := createCodeForContainerNodes(c, htmlReferenceVariableName)
+				code, _ := createCodeForContainerNodes(c, htmlReferenceVariableName, dynamicMap)
 				if code != nil {
 					childCode += code.String()
 				}
 			} else {
-				code, _ := createCodeForTextNodes(c.Data, htmlReferenceVariableName)
+				code, _ := createCodeForTextNodes(c.Data, htmlReferenceVariableName, dynamicMap)
 				if code != nil {
 					childCode += code.String()
 				}
@@ -206,8 +241,18 @@ func createBoilerPlate(componentsCode string, rootVariableName string, scriptCod
 
 }
 
-func main() {
-	contents, err := os.ReadFile("example.goat")
+func analyzeNode(node *html.Node, dynamicMap *DynamicMapping) {
+	if node.Type == html.ElementNode && node.Data == "script" {
+		return
+	}
+
+	for c := node.FirstChild; c != nil; c = c.NextSibling {
+		analyzeNode(c, dynamicMap)
+	}
+}
+
+func generateCode(fileName string) {
+	contents, err := os.ReadFile(fileName)
 	if err != nil {
 		return
 	}
@@ -226,12 +271,21 @@ func main() {
 
 	rootVariableName := ""
 
+	dynamicMap := make(DynamicMapping)
+
+	// for _, node := range n {
+	// 	if node.Type == html.ElementNode && node.Data == "script" {
+	// 		continue
+	// 	}
+	// 	analyseNode(node, &dynamicMap)
+	// }
+
 	for _, node := range n {
 		if node.Type == html.ElementNode && node.Data == "script" {
 			scriptCode += returnCodeForScriptNode(node)
 			continue
 		}
-		code, variableName := createCodeForContainerNodes(node, "body")
+		code, variableName := createCodeForContainerNodes(node, "body", &dynamicMap)
 		rootVariableName = variableName
 		if code != nil {
 			componentsCode += code.String()
@@ -239,4 +293,8 @@ func main() {
 	}
 
 	createBoilerPlate(componentsCode, rootVariableName, scriptCode)
+}
+
+func main() {
+	generateCode("example.goat")
 }
