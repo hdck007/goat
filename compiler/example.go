@@ -1,108 +1,106 @@
-package main
+// package main
 
-import (
-	"syscall/js"
+// import (
+// 	"syscall/js"
 
-	"github.com/hdck007/goat/goat"
-)
+// 	"github.com/hdck007/goat/goat"
+// )
 
-func start() {
+// func start() {
 
-	name := "Hello"
+// 	name := "Hello"
 
-	updateName := func() interface{} {
-		name = "Mello"
+// 	updateName := func() interface{} {
+// 		name = "Mello"
 
-		return nil
-	}
+// 		return nil
+// 	}
 
-	body := js.Global().Get("document").Call("getElementById", "root")
+// 	body := js.Global().Get("document").Call("getElementById", "root")
 
-	DIV233 := goat.BlockElement(func(proxy *goat.Props, prop goat.Props) goat.VElement {
-		element := goat.CreateVirtualElements(
-			"",
-			"div",
-			nil,
-			"",
-		)
-		return element
-	}, map[string]any{})
-	div775 := DIV233(map[string]any{})
-	div860 := div775.Mount(body)
+// 	DIV712 := goat.BlockElement(func(proxy *goat.Props, prop goat.Props) goat.VElement {
+// 		children := []goat.VElement{}
 
-	BUTTON661 := goat.BlockElement(func(proxy *goat.Props, prop goat.Props) goat.VElement {
-		element := goat.CreateVirtualElements(
-			"",
-			"button",
-			map[string]any{},
-			"",
-		)
-		return element
-	}, map[string]any{})
-	button871 := BUTTON661(map[string]any{})
-	button411 := button871.Mount(div860)
+// 		children330 := []goat.VElement{}
 
-	TEXT146 := goat.BlockElement(func(proxy *goat.Props, prop goat.Props) goat.VElement {
-		element := goat.CreateVirtualElements(
-			"",
-			"text",
-			nil,
-			"Click",
-		)
-		return element
-	}, map[string]any{})
-	text42 := TEXT146(map[string]any{})
-	text42.Mount(button411)
+// 		text76 := goat.CreateVirtualElements(
+// 			"",
+// 			"text",
+// 			nil,
+// 			"Click",
+// 		)
+// 		children330 = append(children330, text76)
 
-	H1206 := goat.BlockElement(func(proxy *goat.Props, prop goat.Props) goat.VElement {
-		element := goat.CreateVirtualElements(
-			"",
-			"h1",
-			map[string]any{
-				"class": "text-red",
-			},
-			"",
-		)
-		return element
-	}, map[string]any{})
-	h1122 := H1206(map[string]any{})
-	h120 := h1122.Mount(div860)
+// 		button752 := goat.CreateVirtualElements(
+// 			"",
+// 			"button",
+// 			map[string]any{},
+// 			"",
+// 			children330...,
+// 		)
+// 		children = append(children, button752)
 
-	TEXT911 := goat.BlockElement(func(proxy *goat.Props, prop goat.Props) goat.VElement {
-		element := goat.CreateVirtualElements(
-			"",
-			"text",
-			nil,
-			"    Hello ",
-		)
-		return element
-	}, map[string]any{})
-	text164 := TEXT911(map[string]any{})
-	text164.Mount(h120)
+// 		children972 := []goat.VElement{}
 
-	TEXT382 := goat.BlockElement(func(proxy *goat.Props, prop goat.Props) goat.VElement {
-		element := goat.CreateVirtualElements(
-			"",
-			"text",
-			nil,
-			prop[proxy.Get("name").Key],
-		)
-		return element
-	}, map[string]any{"name": name})
-	text993 := TEXT382(map[string]any{})
-	text993.Mount(h120)
+// 		text738 := goat.CreateVirtualElements(
+// 			"",
+// 			"text",
+// 			nil,
+// 			"    Hello ",
+// 		)
+// 		children972 = append(children972, text738)
 
-	TEXT309 := goat.BlockElement(func(proxy *goat.Props, prop goat.Props) goat.VElement {
-		element := goat.CreateVirtualElements(
-			"",
-			"text",
-			nil,
-			", How are you?    ",
-		)
-		return element
-	}, map[string]any{})
-	text839 := TEXT309(map[string]any{})
-	text839.Mount(h120)
+// 		text167 := goat.CreateVirtualElements(
+// 			"",
+// 			"text",
+// 			nil,
+// 			proxy.Get("name"),
+// 		)
+// 		children972 = append(children972, text167)
 
-	select {}
-}
+// 		text779 := goat.CreateVirtualElements(
+// 			"",
+// 			"text",
+// 			nil,
+// 			", How are you?    ",
+// 		)
+// 		children972 = append(children972, text779)
+
+// 		h1364 := goat.CreateVirtualElements(
+// 			"",
+// 			"h1",
+// 			map[string]any{
+// 				"class": "text-red",
+// 			},
+// 			"",
+// 			children972...,
+// 		)
+// 		children = append(children, h1364)
+
+// 		element := goat.CreateVirtualElements(
+// 			"",
+// 			"div",
+// 			nil,
+// 			"",
+// 			children...,
+// 		)
+// 		return element
+// 	}, map[string]any{
+// 		"name": name,
+// 	})
+// 	div238 := DIV712(map[string]any{})
+// 	div736 := div238.Mount(body)
+
+// 	var updatename628 js.Func
+// 	updatename628 = js.FuncOf(func(this js.Value, args []js.Value) interface{} {
+// 		updateName()
+// 		div238.Patch(DIV712(map[string]any{
+// 			"name": name,
+// 		}))
+
+// 		return nil
+// 	})
+// 	div736.Call("addEventListener", "click", updatename628)
+
+// 	select {}
+// }

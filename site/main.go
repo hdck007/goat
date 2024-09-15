@@ -8,71 +8,59 @@ import (
 
 func main() {
 
-	name := "John"
+	name := "Hello"
+
+	updateName := func(value string) interface{} {
+		name = value
+
+		return nil
+	}
 
 	body := js.Global().Get("document").Call("getElementById", "root")
 
-	DIV544 := goat.BlockElement(func(proxy *goat.Props, prop goat.Props) goat.VElement {
-		element := goat.CreateVirtualElements(
-			"",
-			"div",
-			nil,
-			"",
-		)
-		return element
-	}, map[string]any{})
-	div379 := DIV544(map[string]any{})
-	div368 := div379.Mount(body)
+	h1712 := goat.BlockElement(func(proxy *goat.Props, prop goat.Props) goat.Vnode {
+		children := []goat.Vnode{
+			&goat.UnionNode{
+				Element:     nil,
+				StringValue: "Click me to change ",
+			},
+			proxy.Get("name"),
+		}
 
-	H1758 := goat.BlockElement(func(proxy *goat.Props, prop goat.Props) goat.VElement {
 		element := goat.CreateVirtualElements(
-			"",
 			"h1",
 			map[string]any{
-				"class": "text-red",
+				"class": "bg-red-500 cursor-pointer",
 			},
-			"",
+			children...,
 		)
 		return element
-	}, map[string]any{})
-	h1917 := H1758(map[string]any{})
-	h1275 := h1917.Mount(div368)
+	}, map[string]any{
+		"name": name,
+	})
 
-	TEXT71 := goat.BlockElement(func(proxy *goat.Props, prop goat.Props) goat.VElement {
-		element := goat.CreateVirtualElements(
-			"",
-			"text",
-			nil,
-			"    Hello ",
-		)
-		return element
-	}, map[string]any{})
-	text191 := TEXT71(map[string]any{})
-	text191.Mount(h1275)
+	h1238 := h1712(map[string]any{
+		"name": name,
+	})
 
-	TEXT688 := goat.BlockElement(func(proxy *goat.Props, prop goat.Props) goat.VElement {
-		element := goat.CreateVirtualElements(
-			"",
-			"text",
-			nil,
-			prop[proxy.Get("name").Key],
-		)
-		return element
-	}, map[string]any{"name": name})
-	text116 := TEXT688(map[string]any{})
-	text116.Mount(h1275)
+	h1736 := h1238.Mount(body)
 
-	TEXT201 := goat.BlockElement(func(proxy *goat.Props, prop goat.Props) goat.VElement {
-		element := goat.CreateVirtualElements(
-			"",
-			"text",
-			nil,
-			", How are you?    ",
-		)
-		return element
-	}, map[string]any{})
-	text305 := TEXT201(map[string]any{})
-	text305.Mount(h1275)
+	var updatename628 js.Func
+	updatename628 = js.FuncOf(func(this js.Value, args []js.Value) interface{} {
+		if name == "Hello" {
+			updateName("Mello")
+			h1238.Patch(h1712(map[string]any{
+				"name": name,
+			}))
+		} else {
+			updateName("Hello")
+			h1238.Patch(h1712(map[string]any{
+				"name": name,
+			}))
+		}
+		return nil
+	})
+	h1736.Call("addEventListener", "click", updatename628)
 
 	select {}
 }

@@ -1,15 +1,39 @@
 package goat
 
 type Hole struct {
-	Key string
+	key string
+}
+
+func (h *Hole) isString() bool {
+	return false
+}
+
+func (h *Hole) isVElement() bool {
+	return false
+}
+
+func (h *Hole) isHole() bool {
+	return true
+}
+
+func (h *Hole) getStringValue() string {
+	return ""
+}
+
+func (h *Hole) getVElement() *VElement {
+	return nil
+}
+
+func (h *Hole) getHoleValue() *Hole {
+	return h
 }
 
 type Props map[string]any
 
-func (proxy *Props) Get(key string) Hole {
+func (proxy *Props) Get(keyValue string) *Hole {
 	currentElement := Hole{
-		Key: key,
+		key: keyValue,
 	}
-	(*proxy)[key] = currentElement
-	return currentElement
+	(*proxy)[keyValue] = currentElement
+	return &currentElement
 }

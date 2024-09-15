@@ -11,6 +11,11 @@
 <div>
     <button @click=updateName>Click</button>
     <h1 class="text-red" >
+    {count > 1 ? works : "damn"}
     Hello {name}, How are you?
     </h1>
 </div>
+
+
+if else
+loop
