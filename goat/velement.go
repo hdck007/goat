@@ -57,6 +57,18 @@ func CreateVirtualElements(
 	props Props,
 	children ...Vnode,
 ) Vnode {
+
+	if children[0].isHole() {
+		return children[0].getHoleValue()
+	}
+
+	if elementType == "text" {
+		return &UnionNode{
+			Element:     nil,
+			StringValue: children[0].getStringValue(),
+		}
+	}
+
 	return &UnionNode{
 		Element: &VElement{
 			elementType: elementType,

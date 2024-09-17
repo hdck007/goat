@@ -1,6 +1,8 @@
 <script>
     name := "Hello"
 
+    padre := "Adiosa"
+
     updateName := func() interface{} {
         name = "Mello"
 
@@ -11,11 +13,8 @@
 <div>
     <button @click=updateName>Click</button>
     <h1 class="text-red" >
-    {count > 1 ? works : "damn"}
     Hello {name}, How are you?
+    mello {padre} ami imorto
     </h1>
 </div>
 
-
-if else
-loop

@@ -1,106 +1,122 @@
-// package main
+package main
 
-// import (
-// 	"syscall/js"
+import (
+	"syscall/js"
 
-// 	"github.com/hdck007/goat/goat"
-// )
+	"github.com/hdck007/goat/goat"
+)
 
-// func start() {
+func start() {
 
-// 	name := "Hello"
+	name := "Hello"
 
-// 	updateName := func() interface{} {
-// 		name = "Mello"
+	padre := "Adiosa"
 
-// 		return nil
-// 	}
+	updateName := func() interface{} {
+		name = "Mello"
 
-// 	body := js.Global().Get("document").Call("getElementById", "root")
+		return nil
+	}
 
-// 	DIV712 := goat.BlockElement(func(proxy *goat.Props, prop goat.Props) goat.VElement {
-// 		children := []goat.VElement{}
+	body := js.Global().Get("document").Call("getElementById", "root")
 
-// 		children330 := []goat.VElement{}
+	DIV917 := goat.BlockElement(func(proxy *goat.Props, prop goat.Props) goat.Vnode {
+		children := []goat.Vnode{}
 
-// 		text76 := goat.CreateVirtualElements(
-// 			"",
-// 			"text",
-// 			nil,
-// 			"Click",
-// 		)
-// 		children330 = append(children330, text76)
+		children761 := []goat.Vnode{}
 
-// 		button752 := goat.CreateVirtualElements(
-// 			"",
-// 			"button",
-// 			map[string]any{},
-// 			"",
-// 			children330...,
-// 		)
-// 		children = append(children, button752)
+		text326 := goat.CreateVirtualElements(
+			"text",
+			nil,
+			&goat.UnionNode{Element: nil, StringValue: "Click"},
+		)
+		children761 = append(children761, text326)
 
-// 		children972 := []goat.VElement{}
+		button243 := goat.CreateVirtualElements(
+			"button",
+			map[string]any{},
+			children761...,
+		)
+		children = append(children, button243)
 
-// 		text738 := goat.CreateVirtualElements(
-// 			"",
-// 			"text",
-// 			nil,
-// 			"    Hello ",
-// 		)
-// 		children972 = append(children972, text738)
+		children27 := []goat.Vnode{}
 
-// 		text167 := goat.CreateVirtualElements(
-// 			"",
-// 			"text",
-// 			nil,
-// 			proxy.Get("name"),
-// 		)
-// 		children972 = append(children972, text167)
+		text254 := goat.CreateVirtualElements(
+			"text",
+			nil,
+			&goat.UnionNode{Element: nil, StringValue: "    Hello "},
+		)
+		children27 = append(children27, text254)
 
-// 		text779 := goat.CreateVirtualElements(
-// 			"",
-// 			"text",
-// 			nil,
-// 			", How are you?    ",
-// 		)
-// 		children972 = append(children972, text779)
+		text205 := goat.CreateVirtualElements(
+			"text",
+			nil,
+			proxy.Get("name"),
+		)
+		children27 = append(children27, text205)
 
-// 		h1364 := goat.CreateVirtualElements(
-// 			"",
-// 			"h1",
-// 			map[string]any{
-// 				"class": "text-red",
-// 			},
-// 			"",
-// 			children972...,
-// 		)
-// 		children = append(children, h1364)
+		text13 := goat.CreateVirtualElements(
+			"text",
+			nil,
+			&goat.UnionNode{Element: nil, StringValue: ", How are you?    mello "},
+		)
+		children27 = append(children27, text13)
 
-// 		element := goat.CreateVirtualElements(
-// 			"",
-// 			"div",
-// 			nil,
-// 			"",
-// 			children...,
-// 		)
-// 		return element
-// 	}, map[string]any{
-// 		"name": name,
-// 	})
-// 	div238 := DIV712(map[string]any{})
-// 	div736 := div238.Mount(body)
+		text689 := goat.CreateVirtualElements(
+			"text",
+			nil,
+			proxy.Get("padre"),
+		)
+		children27 = append(children27, text689)
 
-// 	var updatename628 js.Func
-// 	updatename628 = js.FuncOf(func(this js.Value, args []js.Value) interface{} {
-// 		updateName()
-// 		div238.Patch(DIV712(map[string]any{
-// 			"name": name,
-// 		}))
+		text849 := goat.CreateVirtualElements(
+			"text",
+			nil,
+			&goat.UnionNode{Element: nil, StringValue: " ami imorto    "},
+		)
+		children27 = append(children27, text849)
 
-// 		return nil
-// 	})
-// 	div736.Call("addEventListener", "click", updatename628)
+		h1147 := goat.CreateVirtualElements(
+			"h1",
+			map[string]any{
+				"class": "text-red",
+			},
+			children27...,
+		)
+		children = append(children, h1147)
 
-// 	select {}
-// }
+		element := goat.CreateVirtualElements(
+			"div",
+			nil,
+			children...,
+		)
+		return element
+	}, map[string]any{
+
+		"name": name,
+
+		"padre": padre,
+	})
+	div335 := DIV917(map[string]any{
+
+		"name": name,
+
+		"padre": padre,
+	})
+	div327 := div335.Mount(body)
+
+	var updatename88 js.Func
+	updatename88 = js.FuncOf(func(this js.Value, args []js.Value) interface{} {
+		updateName()
+		div335.Patch(DIV917(map[string]any{
+			"name": name,
+
+			"padre": padre,
+		}))
+
+		return nil
+	})
+	div327.Call("addEventListener", "click", updatename88)
+
+	select {}
+}

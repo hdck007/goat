@@ -14,16 +14,13 @@ import (
 	"golang.org/x/net/html/atom"
 )
 
-type DynamicMapping map[string][]string
-
-func createCodeForTextNodes(text string, dynamicMap *DynamicMapping, parentChildArrayName string) (*bytes.Buffer, []string) {
+func createCodeForTextNodes(text string, listOfVariables *[]string, parentChildArrayName string) (*bytes.Buffer, []string) {
 	codeTemplate := template.New("code")
 	variableName := "text" + strconv.Itoa(rand.Intn(1000))
 	variableNames := []string{}
 
 	finalCode, err := codeTemplate.Parse(`
 		{{.VariableName}} := goat.CreateVirtualElements(
-			"",
 			"text",
 			nil,
 			{{.data}},
@@ -48,14 +45,16 @@ func createCodeForTextNodes(text string, dynamicMap *DynamicMapping, parentChild
 		for i, node := range textNodes {
 
 			if node != "" {
-				currentTextNodeCode, _ := createCodeForTextNodes(node, dynamicMap, parentChildArrayName)
+				currentTextNodeCode, childVariableNames := createCodeForTextNodes(node, listOfVariables, parentChildArrayName)
+				variableNames = append(variableNames, childVariableNames...)
 				code.WriteString(currentTextNodeCode.String())
 			}
 			if i != len(textNodes)-1 {
 				dynamicName := strings.TrimSuffix(strings.TrimPrefix(dynamic, "{"), "}")
+				variableNames = append(variableNames, dynamicName)
 				finalCode.Execute(code, map[string]string{
 					"VariableName":         variableName,
-					"data":                 "prop[proxy.Get(\"" + strings.ReplaceAll(dynamicName, "\n", "") + "\").Key]",
+					"data":                 "proxy.Get(\"" + strings.ReplaceAll(dynamicName, "\n", "") + "\")",
 					"ParentChildArrayName": parentChildArrayName,
 				})
 			}
@@ -66,18 +65,20 @@ func createCodeForTextNodes(text string, dynamicMap *DynamicMapping, parentChild
 
 	finalCode.Execute(code, map[string]string{
 		"VariableName":         variableName,
-		"data":                 "\"" + strings.ReplaceAll(text, "\n", "") + "\"",
+		"data":                 "&goat.UnionNode{Element: nil, StringValue:" + "\"" + strings.ReplaceAll(text, "\n", "") + "\"" + "}",
 		"ParentChildArrayName": parentChildArrayName,
 	})
 
 	return code, variableNames
 }
 
-func createCodeForChildContainers(node *html.Node, parentChildrenArrayName string, dynamicMap *DynamicMapping, parentHtmlReference string, parentComponentName string, parentBlockName string) (*bytes.Buffer, string, string) {
+func createCodeForChildContainers(node *html.Node, parentChildrenArrayName string, listOfVariables *[]string, parentHtmlReference string, parentComponentName string, parentBlockName string) (*bytes.Buffer, string, string, []string) {
 
 	if node.Type == 1 {
-		return nil, "", ""
+		return nil, "", "", []string{}
 	}
+
+	dependentVariables := []string{}
 
 	codeTemplate := template.New("code")
 	functionCodeTemplate, functionTemplateErr := template.New("function").Parse(`
@@ -103,13 +104,15 @@ func createCodeForChildContainers(node *html.Node, parentChildrenArrayName strin
 	for c := node.FirstChild; c != nil; c = c.NextSibling {
 		if strings.TrimSpace(c.Data) != "" {
 			if c.Type != html.TextNode {
-				code, _, childFunctionCode := createCodeForChildContainers(c, nodeArrayName, dynamicMap, parentHtmlReference, parentComponentName, parentBlockName)
+				code, _, childFunctionCode, childVariableNames := createCodeForChildContainers(c, nodeArrayName, listOfVariables, parentHtmlReference, parentComponentName, parentBlockName)
+				dependentVariables = append(dependentVariables, childVariableNames...)
 				functionCode.WriteString(childFunctionCode)
 				if code != nil {
 					childCode += code.String()
 				}
 			} else {
-				code, _ := createCodeForTextNodes(c.Data, dynamicMap, nodeArrayName)
+				code, childVariableNames := createCodeForTextNodes(c.Data, listOfVariables, nodeArrayName)
+				dependentVariables = append(dependentVariables, childVariableNames...)
 				if code != nil {
 					childCode += code.String()
 				}
@@ -126,18 +129,15 @@ func createCodeForChildContainers(node *html.Node, parentChildrenArrayName strin
 				functionName := attr.Val
 				functionVariableName := strings.ToLower(functionName) + strconv.Itoa(rand.Intn(1000))
 
-				updateBindings := ""
+				dependencyMap := createDependencyMap(*listOfVariables)
 
-				for _, dependentVariable := range (*dynamicMap)["name"] {
-					println(dependentVariable)
-					updateBindings += parentComponentName + ".Patch(" + parentBlockName + "(map[string]any{" + "\n" + "\"" + "name" + "\": " + "name" + ",\n" + "}))" + "\n"
-				}
+				bindings := parentComponentName + ".Patch(" + parentBlockName + "(map[string]any{" + dependencyMap + "}))" + "\n"
 
 				functionCodeTemplate.Execute(functionCode, map[string]string{
 					"VariableName":   functionVariableName,
 					"FunctionName":   functionName,
 					"Event":          eventName,
-					"UpdateBindings": updateBindings,
+					"UpdateBindings": bindings,
 					"HTMLReference":  parentHtmlReference,
 				})
 			} else {
@@ -150,13 +150,11 @@ func createCodeForChildContainers(node *html.Node, parentChildrenArrayName strin
 	}
 
 	finalCode, err := codeTemplate.Parse(`
-		{{.NodeArrayName}} := []goat.VElement{}
+		{{.NodeArrayName}} := []goat.Vnode{}
 		{{.ChildCode}}
 		{{.VariableName}} := goat.CreateVirtualElements(
-			"",
 			"{{.ComponentType}}",
 			{{.Props}},
-			"",
 			{{.NodeArrayName}}...,
 		)
 		{{.ParentArrayName}} = append({{.ParentArrayName}}, {{.VariableName}})
@@ -177,15 +175,39 @@ func createCodeForChildContainers(node *html.Node, parentChildrenArrayName strin
 		"VariableName":    variableName,
 	})
 
-	return code, variableName, functionCode.String()
+	return code, variableName, functionCode.String(), dependentVariables
 
 }
 
-func createCodeForContainerNodes(node *html.Node, parentHtml string, dynamicMap *DynamicMapping) (*bytes.Buffer, string, string) {
+func createDependencyMap(variables []string) string {
+
+	codeTemplate := template.New("code")
+	dependencyMap := bytes.NewBuffer([]byte{})
+
+	codeTemplate, err := codeTemplate.Parse(`
+		"{{.VariableName}}": {{.VariableName}},
+	`)
+
+	if err != nil {
+		log.Fatalf("Parse error: %s", err)
+	}
+
+	for _, variable := range variables {
+		codeTemplate.Execute(dependencyMap, map[string]string{
+			"VariableName": variable,
+		})
+	}
+
+	return dependencyMap.String()
+}
+
+func createCodeForContainerNodes(node *html.Node, parentHtml string, listOfVariables *[]string) (*bytes.Buffer, string, string) {
 
 	if node.Type == 1 {
 		return nil, "", ""
 	}
+
+	dependentVariableNames := []string{}
 
 	codeTemplate := template.New("code")
 	functionCodeTemplate, functionTemplateErr := template.New("function").Parse(`
@@ -215,13 +237,14 @@ func createCodeForContainerNodes(node *html.Node, parentHtml string, dynamicMap 
 	for c := node.FirstChild; c != nil; c = c.NextSibling {
 		if strings.TrimSpace(c.Data) != "" {
 			if c.Type != html.TextNode {
-				code, _, childFunctionCode := createCodeForChildContainers(c, "children", dynamicMap, htmlReferenceVariableName, variableName, componentName)
+				code, _, childFunctionCode, childVariableNames := createCodeForChildContainers(c, "children", listOfVariables, htmlReferenceVariableName, variableName, componentName)
+				dependentVariableNames = append(dependentVariableNames, childVariableNames...)
 				functionCode.WriteString(childFunctionCode)
 				if code != nil {
 					childCode += code.String()
 				}
 			} else {
-				code, _ := createCodeForTextNodes(c.Data, dynamicMap, "children")
+				code, _ := createCodeForTextNodes(c.Data, listOfVariables, "children")
 				if code != nil {
 					childCode += code.String()
 				}
@@ -238,18 +261,15 @@ func createCodeForContainerNodes(node *html.Node, parentHtml string, dynamicMap 
 				functionName := attr.Val
 				functionVariableName := strings.ToLower(functionName) + strconv.Itoa(rand.Intn(1000))
 
-				updateBindings := ""
+				dependencyMap := createDependencyMap(*listOfVariables)
 
-				for _, dependentVariable := range (*dynamicMap)["name"] {
-					println(dependentVariable)
-					updateBindings += dependentVariable + ".Patch(map[string]any{" + "\n" + "\"" + "name" + "\": " + "name" + ",\n" + "})" + "\n"
-				}
+				bindings := variableName + ".Patch(" + componentName + "(map[string]any{" + dependencyMap + "}))" + "\n"
 
 				functionCodeTemplate.Execute(functionCode, map[string]string{
 					"VariableName":   functionVariableName,
 					"FunctionName":   functionName,
 					"Event":          eventName,
-					"UpdateBindings": updateBindings,
+					"UpdateBindings": bindings,
 					"ComponentName":  htmlReferenceVariableName,
 				})
 			} else {
@@ -261,20 +281,24 @@ func createCodeForContainerNodes(node *html.Node, parentHtml string, dynamicMap 
 		props = "nil"
 	}
 
+	dependencyMap := createDependencyMap(dependentVariableNames)
+
 	finalCode, err := codeTemplate.Parse(`
-	{{.ComponentName}} := goat.BlockElement(func(proxy *goat.Props, prop goat.Props) goat.VElement {
-		children := []goat.VElement{}
+	{{.ComponentName}} := goat.BlockElement(func(proxy *goat.Props, prop goat.Props) goat.Vnode {
+		children := []goat.Vnode{}
 		{{.ChildCode}}
 		element := goat.CreateVirtualElements(
-			"",
 			"{{.ComponentType}}",
 			{{.Props}},
-			"",
 			children...,
 		)
 		return element
-	}, map[string]any{})
-	{{.VariableName}} := {{.ComponentName}}(map[string]any{})
+	}, map[string]any{
+		{{.DependencyMap}}
+	})
+	{{.VariableName}} := {{.ComponentName}}(map[string]any{
+		{{.DependencyMap}}
+	})
 	{{.Binding}}
 	`)
 
@@ -292,6 +316,7 @@ func createCodeForContainerNodes(node *html.Node, parentHtml string, dynamicMap 
 		"ChildBindings": childBindings,
 		"Binding":       binding,
 		"Props":         props,
+		"DependencyMap": dependencyMap,
 	})
 
 	return code, variableName, functionCode.String()
@@ -347,20 +372,22 @@ func createBoilerPlate(componentsCode string, rootVariableName string, scriptCod
 
 }
 
-func analyzeNode(node *html.Node, dynamicMap *DynamicMapping) {
+func analyzeNode(node *html.Node, dynamicMap *[]string) {
 	if node.Type == html.ElementNode && node.Data == "script" {
 		return
 	}
-	r, _ := regexp.Compile("{.*}")
+	r, _ := regexp.Compile("{[^{}]*}")
 
-	match := r.MatchString(node.Data)
-
-	if match {
-		matchingString := r.FindString(node.Data)
+	matches := r.FindAllStringSubmatch(node.Data, -1)
+	for _, v := range matches {
+		matchingString := v[0]
 		nameOfVariable := strings.ReplaceAll(strings.ReplaceAll(matchingString, "{", ""), "}", "")
+
 		println(nameOfVariable)
-		(*dynamicMap)[nameOfVariable] = append((*dynamicMap)[nameOfVariable], "hello")
+
+		(*dynamicMap) = append((*dynamicMap), nameOfVariable)
 	}
+
 	for c := node.FirstChild; c != nil; c = c.NextSibling {
 		analyzeNode(c, dynamicMap)
 	}
@@ -388,7 +415,7 @@ func generateCode(fileName string) {
 
 	functionCode := ""
 
-	dynamicMap := make(DynamicMapping)
+	dynamicMap := []string{}
 
 	for _, node := range n {
 		analyzeNode(node, &dynamicMap)
@@ -411,12 +438,5 @@ func generateCode(fileName string) {
 }
 
 func main() {
-	// generateCode("example.goat")
-	value, err := strconv.ParseBool("")
-
-	if err == nil {
-		println(err)
-	}
-
-	println(value)
+	generateCode("example.goat")
 }
