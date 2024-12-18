@@ -8,6 +8,8 @@ import (
 
 func main() {
 
+	x, y := 100, 100
+
 	name := "Hello"
 
 	padre := "Adiosa"
@@ -15,6 +17,12 @@ func main() {
 	updateName := func() interface{} {
 		name = "Mello"
 
+		return nil
+	}
+
+	updatePostion := func(event js.Value) interface{} {
+		x = event.Get("clientX").Int()
+		y = event.Get("clientY").Int()
 		return nil
 	}
 
@@ -79,7 +87,11 @@ func main() {
 		h1147 := goat.CreateVirtualElements(
 			"h1",
 			map[string]any{
-				"class": "text-red",
+				"class":    "text-red",
+				"left":     proxy.Get("x"),
+				"top":      proxy.Get("y"),
+				"position": "absolute",
+				// "style": "postion: absolute; left: " + strconv.Itoa(newX) + "px; top: " + strconv.Itoa(newY) + "px;",
 			},
 			children27...,
 		)
@@ -92,15 +104,15 @@ func main() {
 		)
 		return element
 	}, map[string]any{
-
-		"name": name,
-
+		"x":     x,
+		"y":     y,
+		"name":  name,
 		"padre": padre,
 	})
 	div335 := DIV917(map[string]any{
-
-		"name": name,
-
+		"x":     x,
+		"y":     y,
+		"name":  name,
 		"padre": padre,
 	})
 	div327 := div335.Mount(body)
@@ -109,14 +121,29 @@ func main() {
 	updatename88 = js.FuncOf(func(this js.Value, args []js.Value) interface{} {
 		updateName()
 		div335.Patch(DIV917(map[string]any{
-			"name": name,
-
+			"name":  name,
 			"padre": padre,
+			"x":     x,
+			"y":     y,
 		}))
 
 		return nil
 	})
+
+	updatePostionRandom := js.FuncOf(func(this js.Value, args []js.Value) interface{} {
+		updatePostion(js.Global().Get("event"))
+		// println(x, y)
+		div335.Patch(DIV917(map[string]any{
+			"name":  name,
+			"padre": padre,
+			"x":     x,
+			"y":     y,
+		}))
+		return nil
+	})
+
 	div327.Call("addEventListener", "click", updatename88)
+	body.Call("addEventListener", "mousemove", updatePostionRandom)
 
 	select {}
 }
