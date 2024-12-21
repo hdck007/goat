@@ -1,39 +1,38 @@
 package goat
 
-type Hole struct {
+type Placeholder struct {
 	key string
 }
 
-func (h *Hole) isString() bool {
+func (h *Placeholder) isString() bool {
 	return false
 }
 
-func (h *Hole) isVElement() bool {
+func (h *Placeholder) isVElement() bool {
 	return false
 }
 
-func (h *Hole) isHole() bool {
+func (h *Placeholder) isPlaceholder() bool {
 	return true
 }
 
-func (h *Hole) getStringValue() string {
+func (h *Placeholder) getStringValue() string {
 	return ""
 }
 
-func (h *Hole) getVElement() *VElement {
+func (h *Placeholder) getVElement() *VElement {
 	return nil
 }
 
-func (h *Hole) getHoleValue() *Hole {
+func (h *Placeholder) getPlaceholderValue() *Placeholder {
 	return h
 }
 
 type Props map[string]any
 
-func (proxy *Props) Get(keyValue string) *Hole {
-	currentElement := Hole{
+func Get(keyValue string) *Placeholder {
+	currentElement := Placeholder{
 		key: keyValue,
 	}
-	(*proxy)[keyValue] = currentElement
 	return &currentElement
 }
