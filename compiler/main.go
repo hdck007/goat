@@ -10,6 +10,7 @@ import (
 	"strings"
 	"text/template"
 
+	"github.com/a-h/parse"
 	"golang.org/x/net/html"
 	"golang.org/x/net/html/atom"
 )
@@ -438,5 +439,15 @@ func generateCode(fileName string) {
 }
 
 func main() {
-	generateCode("example.goat")
+	// generateCode("example.goat")
+
+	contents, err := os.ReadFile("example.goat")
+
+	if err != nil {
+		return
+	}
+
+	result := parse.String(string(contents))
+
+	println(result)
 }

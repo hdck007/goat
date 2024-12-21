@@ -4,7 +4,7 @@ import (
 	"strings"
 )
 
-type UnionNode struct {
+type TextOrElement struct {
 	Element     *VElement
 	StringValue string
 }
@@ -18,37 +18,37 @@ type VElement struct {
 type Vnode interface {
 	isString() bool
 	isVElement() bool
-	isHole() bool
+	isPlaceholder() bool
 	getStringValue() string
 	getVElement() *VElement
-	getHoleValue() *Hole
+	getPlaceholderValue() *Placeholder
 }
 
-func (element *UnionNode) isString() bool {
+func (element *TextOrElement) isString() bool {
 	trimmedString := strings.Trim(element.StringValue, " ")
 	return len(trimmedString) > 0
 }
 
-func (element *UnionNode) isVElement() bool {
+func (element *TextOrElement) isVElement() bool {
 	return element.Element != nil
 }
 
-func (element *UnionNode) isHole() bool {
+func (element *TextOrElement) isPlaceholder() bool {
 	return false
 }
 
-func (element *UnionNode) getStringValue() string {
+func (element *TextOrElement) getStringValue() string {
 	if element.isString() {
 		return element.StringValue
 	}
 	return ""
 }
 
-func (element *UnionNode) getVElement() *VElement {
+func (element *TextOrElement) getVElement() *VElement {
 	return element.Element
 }
 
-func (element *UnionNode) getHoleValue() *Hole {
+func (element *TextOrElement) getPlaceholderValue() *Placeholder {
 	return nil
 }
 
@@ -57,19 +57,14 @@ func CreateVirtualElements(
 	props Props,
 	children ...Vnode,
 ) Vnode {
-
-	if children[0].isHole() {
-		return children[0].getHoleValue()
-	}
-
 	if elementType == "text" {
-		return &UnionNode{
+		return &TextOrElement{
 			Element:     nil,
 			StringValue: children[0].getStringValue(),
 		}
 	}
 
-	return &UnionNode{
+	return &TextOrElement{
 		Element: &VElement{
 			elementType: elementType,
 			props:       props,

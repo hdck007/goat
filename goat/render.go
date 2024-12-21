@@ -5,7 +5,7 @@ import (
 	"syscall/js"
 )
 
-func (proxy *Props) Render(
+func Render(
 	element Vnode,
 	edits *[]Edits,
 	path []int,
@@ -17,24 +17,18 @@ func (proxy *Props) Render(
 		return document.Call("createTextNode", element.getStringValue())
 	}
 
-	isVElement := element.isVElement()
-
-	if !isVElement {
-		return js.Value{}
-	}
-
 	virtualElement := element.getVElement()
 
 	el := document.Call("createElement", virtualElement.elementType)
 
 	if virtualElement.props != nil {
 		for k, v := range virtualElement.props {
-			if reflect.TypeOf(v).String() == "goat.Hole" {
+			if reflect.TypeOf(v).String() == "goat.Placeholder" {
 				*edits = append(*edits, &EditAttribute{
 					editType:  "attribute",
 					path:      path,
 					attribute: k,
-					hole:      v.(*Hole).key,
+					key:       v.(*Placeholder).key,
 				})
 				continue
 			}
@@ -48,19 +42,19 @@ func (proxy *Props) Render(
 	}
 
 	for childIndex, child := range virtualElement.children {
-		if child.isHole() {
+		if child.isPlaceholder() {
 			*edits = append(*edits, &EditChild{
 				editType: "child",
 				path:     path,
 				index:    childIndex,
-				hole:     child.getHoleValue().key,
+				key:      child.getPlaceholderValue().key,
 			})
 			continue
 		}
 		newPath := make([]int, len(path))
 		copy(newPath, path)
 		newPath = append(newPath, childIndex)
-		theChild := proxy.Render(child, edits, newPath)
+		theChild := Render(child, edits, newPath)
 		el.Call("appendChild", theChild)
 	}
 

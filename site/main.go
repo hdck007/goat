@@ -6,117 +6,81 @@ import (
 	"github.com/hdck007/goat/goat"
 )
 
+// Child Greeting component
+func Greeting(props goat.Props) goat.Block {
+	return goat.BlockElement(func(p goat.Props) goat.Vnode {
+		return goat.CreateVirtualElements("div",
+			goat.Props{"class": "greeting"},
+			goat.CreateVirtualElements("p", nil,
+				goat.CreateVirtualElements("text", nil,
+					&goat.TextOrElement{
+						StringValue: "Hello, ",
+						Element:     nil,
+					},
+				),
+				goat.Get("name"),
+				goat.CreateVirtualElements("text", nil,
+					&goat.TextOrElement{
+						StringValue: "!",
+						Element:     nil,
+					},
+				),
+			),
+		)
+	}, props)()
+}
+
+// Parent component with nested components
+func ParentComponent(props goat.Props) goat.Block {
+	count := 1
+	userName := "John"
+	message := "Welcome back"
+
+	// Create the greeting component instance
+	greetingComponent := Greeting(goat.Props{
+		"name": userName,
+	})
+
+	return goat.BlockElement(func(p goat.Props) goat.Vnode {
+		return goat.CreateVirtualElements("div",
+			goat.Props{"class": "container"},
+			// Counter section
+			goat.CreateVirtualElements("div",
+				goat.Props{"class": "counter-section"},
+				goat.CreateVirtualElements("h2", nil,
+					goat.CreateVirtualElements("text", nil,
+						&goat.TextOrElement{
+							StringValue: "Count: ",
+							Element:     nil,
+						},
+					),
+					goat.Get("count"),
+				),
+			),
+			// Message section
+			goat.CreateVirtualElements("div",
+				goat.Props{"class": "message"},
+				goat.CreateVirtualElements("text", nil,
+					&goat.TextOrElement{
+						StringValue: message,
+						Element:     nil,
+					},
+				),
+			),
+			// Nested Greeting component using placeholder
+			goat.CreateVirtualElements("div",
+				goat.Props{"class": "nested-component"},
+				goat.Get("greetingComponent"),
+			),
+		)
+	}, goat.Props{
+		"count":             count,
+		"greetingComponent": greetingComponent,
+	})()
+}
+
 func main() {
-
-	name := "Hello"
-
-	padre := "Adiosa"
-
-	updateName := func() interface{} {
-		name = "Mello"
-
-		return nil
-	}
-
-	body := js.Global().Get("document").Call("getElementById", "root")
-
-	DIV917 := goat.BlockElement(func(proxy *goat.Props, prop goat.Props) goat.Vnode {
-		children := []goat.Vnode{}
-
-		children761 := []goat.Vnode{}
-
-		text326 := goat.CreateVirtualElements(
-			"text",
-			nil,
-			&goat.UnionNode{Element: nil, StringValue: "Click"},
-		)
-		children761 = append(children761, text326)
-
-		button243 := goat.CreateVirtualElements(
-			"button",
-			map[string]any{},
-			children761...,
-		)
-		children = append(children, button243)
-
-		children27 := []goat.Vnode{}
-
-		text254 := goat.CreateVirtualElements(
-			"text",
-			nil,
-			&goat.UnionNode{Element: nil, StringValue: "    Hello "},
-		)
-		children27 = append(children27, text254)
-
-		text205 := goat.CreateVirtualElements(
-			"text",
-			nil,
-			proxy.Get("name"),
-		)
-		children27 = append(children27, text205)
-
-		text13 := goat.CreateVirtualElements(
-			"text",
-			nil,
-			&goat.UnionNode{Element: nil, StringValue: ", How are you?    mello "},
-		)
-		children27 = append(children27, text13)
-
-		text689 := goat.CreateVirtualElements(
-			"text",
-			nil,
-			proxy.Get("padre"),
-		)
-		children27 = append(children27, text689)
-
-		text849 := goat.CreateVirtualElements(
-			"text",
-			nil,
-			&goat.UnionNode{Element: nil, StringValue: " ami imorto    "},
-		)
-		children27 = append(children27, text849)
-
-		h1147 := goat.CreateVirtualElements(
-			"h1",
-			map[string]any{
-				"class": "text-red",
-			},
-			children27...,
-		)
-		children = append(children, h1147)
-
-		element := goat.CreateVirtualElements(
-			"div",
-			nil,
-			children...,
-		)
-		return element
-	}, map[string]any{
-
-		"name": name,
-
-		"padre": padre,
-	})
-	div335 := DIV917(map[string]any{
-
-		"name": name,
-
-		"padre": padre,
-	})
-	div327 := div335.Mount(body)
-
-	var updatename88 js.Func
-	updatename88 = js.FuncOf(func(this js.Value, args []js.Value) interface{} {
-		updateName()
-		div335.Patch(DIV917(map[string]any{
-			"name": name,
-
-			"padre": padre,
-		}))
-
-		return nil
-	})
-	div327.Call("addEventListener", "click", updatename88)
-
-	select {}
+	component := ParentComponent(goat.Props{})
+	root := js.Global().Get("document").Call("getElementById", "root")
+	component.Mount(root)
 }

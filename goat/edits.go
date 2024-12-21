@@ -1,17 +1,18 @@
 package goat
 
+// editType = "attribute" | "child"
 type EditAttribute struct {
 	editType  string
 	path      []int
 	attribute string
-	hole      string
+	key       string
 }
 
 type EditChild struct {
 	editType string
 	path     []int
 	index    int
-	hole     string
+	key      string
 }
 
 type Edits interface {

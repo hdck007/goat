@@ -1,9 +1,9 @@
 <script>
-    count := "John"
+    count := 1
 </script>
 
 <div>
     <h1 class="text-red" >
-    Hello {name}, How are you?
+    Hello {count}, How are you? {doubledCount}
     </h1>
 </div>
