@@ -63,6 +63,7 @@ func BlockElement(fn func(originalProp Props) Vnode, props Props) func() Block {
 
 			return el
 		}
+
 		patch := func(newBlock Block) {
 			for editIndex, editUnionObject := range edits {
 				if editUnionObject.isAttributeEdit() {
@@ -91,7 +92,6 @@ func BlockElement(fn func(originalProp Props) Vnode, props Props) func() Block {
 
 				if reflect.TypeOf(value).String() == "goat.Block" {
 					// edit for composition
-					// let me try this once
 					value.(Block).Patch(newBlock.props[(newBlock.edits)[editIndex].getChildEditValue().key].(Block))
 					continue
 				}
