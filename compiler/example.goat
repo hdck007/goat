@@ -4,10 +4,9 @@
 </script>
 
 <div>
-    <button>Click</button>
+    <button class="bg-none py-4 rounded-mg border border-black m-4">Click</button>
     <h1 class="text-red" >
         Hello {name}, How are you?
         mello {padre} ami imorto
     </h1>
 </div>
-
