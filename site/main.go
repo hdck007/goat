@@ -2,6 +2,7 @@ package main
 
 import (
 	"syscall/js"
+	"time"
 
 	"github.com/hdck007/goat/goat"
 )
@@ -32,7 +33,6 @@ func Greeting(props goat.Props) goat.Block {
 
 // Parent component with nested components
 func ParentComponent(props goat.Props) goat.Block {
-	count := 1
 	userName := "John"
 	message := "Welcome back"
 
@@ -40,6 +40,11 @@ func ParentComponent(props goat.Props) goat.Block {
 	greetingComponent := Greeting(goat.Props{
 		"name": userName,
 	})
+
+	derivedProps := goat.Props{
+		"count":             props["count"],
+		"greetingComponent": greetingComponent,
+	}
 
 	return goat.BlockElement(func(p goat.Props) goat.Vnode {
 		return goat.CreateVirtualElements("div",
@@ -73,14 +78,35 @@ func ParentComponent(props goat.Props) goat.Block {
 				goat.Get("greetingComponent"),
 			),
 		)
-	}, goat.Props{
-		"count":             count,
-		"greetingComponent": greetingComponent,
-	})()
+	}, derivedProps)()
 }
 
 func main() {
-	component := ParentComponent(goat.Props{})
+	count := 0
+	component := ParentComponent(goat.Props{
+		"count": 1,
+	})
 	root := js.Global().Get("document").Call("getElementById", "root")
 	component.Mount(root)
+
+	ticker := time.NewTicker(1 * time.Second)
+	quit := make(chan struct{})
+	go func() {
+		for {
+			select {
+			case <-ticker.C:
+				count += 1
+				println(count)
+				newComponent := ParentComponent(goat.Props{
+					"count": count,
+				})
+				component.Patch(newComponent)
+			case <-quit:
+				ticker.Stop()
+				return
+			}
+		}
+	}()
+
+	select {}
 }
