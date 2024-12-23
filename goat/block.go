@@ -25,7 +25,6 @@ func BlockElement(fn func(originalProp Props) Vnode, props Props) func() Block {
 
 		mount := func(parent js.Value) js.Value {
 			el := root.Call("cloneNode", true)
-			parent.Set("textContent", "")
 			parent.Call("appendChild", el)
 
 			for editIndex, editUnionObject := range edits {
@@ -83,8 +82,6 @@ func BlockElement(fn func(originalProp Props) Vnode, props Props) func() Block {
 				newValue := newBlock.props[edit.key]
 
 				if reflect.TypeOf(value).String() == "goat.Block" {
-					// edit for composition
-					props[edit.key] = newValue
 					value.(Block).Patch(newBlock.props[(newBlock.edits)[editIndex].getChildEditValue().key].(Block))
 					continue
 				}
@@ -93,7 +90,6 @@ func BlockElement(fn func(originalProp Props) Vnode, props Props) func() Block {
 					return
 				}
 
-				// update the existing edit value
 				props[edit.key] = newValue
 				thisEl := elements[editIndex]
 

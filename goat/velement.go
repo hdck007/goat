@@ -1,9 +1,5 @@
 package goat
 
-import (
-	"strings"
-)
-
 type TextOrElement struct {
 	Element     *VElement
 	StringValue string
@@ -25,8 +21,7 @@ type Vnode interface {
 }
 
 func (element *TextOrElement) isString() bool {
-	trimmedString := strings.Trim(element.StringValue, " ")
-	return len(trimmedString) > 0
+	return element.Element == nil
 }
 
 func (element *TextOrElement) isVElement() bool {
