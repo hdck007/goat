@@ -82,6 +82,13 @@ func BlockElement(fn func(originalProp Props) Vnode, props Props) func() Block {
 				value := props[edit.key]
 				newValue := newBlock.props[edit.key]
 
+				if reflect.TypeOf(value).String() == "goat.Block" {
+					// edit for composition
+					props[edit.key] = newValue
+					value.(Block).Patch(newBlock.props[(newBlock.edits)[editIndex].getChildEditValue().key].(Block))
+					continue
+				}
+
 				if value == newValue {
 					return
 				}
@@ -90,11 +97,6 @@ func BlockElement(fn func(originalProp Props) Vnode, props Props) func() Block {
 				props[edit.key] = newValue
 				thisEl := elements[editIndex]
 
-				if reflect.TypeOf(value).String() == "goat.Block" {
-					// edit for composition
-					value.(Block).Patch(newBlock.props[(newBlock.edits)[editIndex].getChildEditValue().key].(Block))
-					continue
-				}
 				thisEl.Get("childNodes").Call("item", edit.index).Set("textContent", newValue)
 			}
 		}
