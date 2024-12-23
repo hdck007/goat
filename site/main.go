@@ -11,10 +11,10 @@ import (
 func HeroSection(props goat.Props) goat.Block {
 	return goat.BlockElement(func(p goat.Props) goat.Vnode {
 		return goat.CreateVirtualElements("div",
-			goat.Props{"class": "bg-black text-white py-32 relative overflow-hidden"},
+			goat.Props{"class": "bg-zinc-900 text-white py-32 relative overflow-hidden"},
 			// Glow effects
 			goat.CreateVirtualElements("div",
-				goat.Props{"class": "absolute inset-0 bg-gradient-to-r from-blue-500/20 to-purple-500/20 blur-3xl"},
+				goat.Props{"class": "absolute h-[60%] inset-0 bg-gradient-to-r from-blue-500/20 to-purple-500/20 blur-3xl"},
 			),
 			goat.CreateVirtualElements("div",
 				goat.Props{"class": "container mx-auto px-6 text-center relative z-10"},
@@ -48,10 +48,10 @@ func Counter(props goat.Props) goat.Block {
 			goat.Props{"class": "relative group"},
 			// Glow effect
 			goat.CreateVirtualElements("div",
-				goat.Props{"class": "absolute -inset-0.5 bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg blur opacity-50 group-hover:opacity-75 transition duration-1000"},
+				goat.Props{"class": "absolute -inset-0.5 bg-zinc-900 pt-8 rounded-lg blur  group-hover:opacity-75 transition duration-300"},
 			),
 			goat.CreateVirtualElements("div",
-				goat.Props{"class": "relative bg-black p-8 py-0 rounded-lg"},
+				goat.Props{"class": "relative bg-zinc-900 p-8 py-0 rounded-lg"},
 				goat.CreateVirtualElements("div",
 					goat.Props{"class": "text-center"},
 					goat.CreateVirtualElements("h2",
@@ -83,7 +83,7 @@ func Counter(props goat.Props) goat.Block {
 func FeaturesSection(props goat.Props) goat.Block {
 	return goat.BlockElement(func(p goat.Props) goat.Vnode {
 		return goat.CreateVirtualElements("div",
-			goat.Props{"class": "bg-black py-16"}, // Section background
+			goat.Props{"class": "bg-zinc-900 py-16"}, // Section background
 			goat.CreateVirtualElements("div",
 				goat.Props{"class": "container mx-auto px-6"},
 				goat.CreateVirtualElements("div",
@@ -98,10 +98,10 @@ func FeaturesSection(props goat.Props) goat.Block {
 					goat.CreateVirtualElements("div",
 						goat.Props{"class": "text-center relative group"},
 						goat.CreateVirtualElements("div",
-							goat.Props{"class": "absolute -inset-0.5 bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg blur opacity-25 group-hover:opacity-50 transition duration-1000"},
+							goat.Props{"class": "absolute -inset-0.5 bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg blur opacity-0 group-hover:opacity-50 transition duration-300"}, // Gradient outline hidden by default, shown on hover
 						),
 						goat.CreateVirtualElements("div",
-							goat.Props{"class": "relative p-6 bg-black dark:bg-gray-800 rounded-lg shadow-lg"}, // Card background updated to bg-black
+							goat.Props{"class": "relative p-6 bg-zinc-900 dark:bg-gray-800 rounded-lg shadow-lg"}, // Card background updated to bg-zinc-900
 							goat.CreateVirtualElements("h3",
 								goat.Props{"class": "text-xl font-semibold text-white mb-2"}, // Text color adjusted
 								goat.CreateVirtualElements("text", nil,
@@ -112,7 +112,7 @@ func FeaturesSection(props goat.Props) goat.Block {
 								),
 							),
 							goat.CreateVirtualElements("p",
-								goat.Props{"class": "text-blue-200"},
+								goat.Props{"class": "text-blue-200 min-h-[3rem] line-clamp-2"}, // Description forces at least 2 lines
 								goat.CreateVirtualElements("text", nil,
 									&goat.TextOrElement{
 										StringValue: "Compiled to WASM for native-like performance",
@@ -127,10 +127,10 @@ func FeaturesSection(props goat.Props) goat.Block {
 					goat.CreateVirtualElements("div",
 						goat.Props{"class": "text-center relative group"},
 						goat.CreateVirtualElements("div",
-							goat.Props{"class": "absolute -inset-0.5 bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg blur opacity-25 group-hover:opacity-50 transition duration-1000"},
+							goat.Props{"class": "absolute -inset-0.5 bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg blur opacity-0 group-hover:opacity-50 transition duration-300"}, // Gradient outline hidden by default, shown on hover
 						),
 						goat.CreateVirtualElements("div",
-							goat.Props{"class": "relative p-6 bg-black dark:bg-gray-800 rounded-lg shadow-lg"}, // Card background updated to bg-black
+							goat.Props{"class": "relative p-6 bg-zinc-900 dark:bg-gray-800 rounded-lg shadow-lg"}, // Card background updated to bg-zinc-900
 							goat.CreateVirtualElements("h3",
 								goat.Props{"class": "text-xl font-semibold text-white mb-2"}, // Text color adjusted
 								goat.CreateVirtualElements("text", nil,
@@ -141,7 +141,7 @@ func FeaturesSection(props goat.Props) goat.Block {
 								),
 							),
 							goat.CreateVirtualElements("p",
-								goat.Props{"class": "text-blue-200"},
+								goat.Props{"class": "text-blue-200 min-h-[3rem] line-clamp-2"}, // Description forces at least 2 lines
 								goat.CreateVirtualElements("text", nil,
 									&goat.TextOrElement{
 										StringValue: "Lightning-fast DOM updates with minimal operations",
@@ -156,10 +156,10 @@ func FeaturesSection(props goat.Props) goat.Block {
 					goat.CreateVirtualElements("div",
 						goat.Props{"class": "text-center relative group"},
 						goat.CreateVirtualElements("div",
-							goat.Props{"class": "absolute -inset-0.5 bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg blur opacity-25 group-hover:opacity-50 transition duration-1000"},
+							goat.Props{"class": "absolute -inset-0.5 bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg blur opacity-0 group-hover:opacity-50 transition duration-300"}, // Gradient outline hidden by default, shown on hover
 						),
 						goat.CreateVirtualElements("div",
-							goat.Props{"class": "relative p-6 bg-black dark:bg-gray-800 rounded-lg shadow-lg"}, // Card background updated to bg-black
+							goat.Props{"class": "relative p-6 bg-zinc-900 dark:bg-gray-800 rounded-lg shadow-lg"}, // Card background updated to bg-zinc-900
 							goat.CreateVirtualElements("h3",
 								goat.Props{"class": "text-xl font-semibold text-white mb-2"}, // Text color adjusted
 								goat.CreateVirtualElements("text", nil,
@@ -170,7 +170,7 @@ func FeaturesSection(props goat.Props) goat.Block {
 								),
 							),
 							goat.CreateVirtualElements("p",
-								goat.Props{"class": "text-blue-200"},
+								goat.Props{"class": "text-blue-200 min-h-[3rem] line-clamp-2"}, // Description forces at least 2 lines
 								goat.CreateVirtualElements("text", nil,
 									&goat.TextOrElement{
 										StringValue: "Smart diffing algorithm for optimal performance",
@@ -202,7 +202,7 @@ func App(props goat.Props) goat.Block {
 
 	return goat.BlockElement(func(p goat.Props) goat.Vnode {
 		return goat.CreateVirtualElements("div",
-			goat.Props{"class": "min-h-screen bg-black overflow-hidden"},
+			goat.Props{"class": "min-h-screen bg-zinc-900 overflow-hidden"},
 			goat.Get("heroSection"),
 			goat.Get("counterComponent"),
 			goat.Get("featuresSection"),
