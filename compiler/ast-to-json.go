@@ -7,6 +7,20 @@ import (
 )
 
 // convertFragmentsToJSON converts a slice of Fragments to JSON-friendly format
+func converAttributesToJSON(attributes []Attribute) []interface{} {
+	result := make([]interface{}, 0, len(attributes))
+
+	for _, attr := range attributes {
+		result = append(result, map[string]interface{}{
+			"type":  attr.Type,
+			"name":  attr.Name,
+			"value": convertGoExprToJSON(attr.Value),
+		})
+	}
+
+	return result
+}
+
 func convertFragmentsToJSON(fragments []Fragment) []interface{} {
 	result := make([]interface{}, 0, len(fragments))
 
@@ -14,9 +28,10 @@ func convertFragmentsToJSON(fragments []Fragment) []interface{} {
 		switch f := fragment.(type) {
 		case *Element:
 			result = append(result, map[string]interface{}{
-				"type":       "Element",
+				"type":       f.Type,
 				"name":       f.Name,
-				"attributes": f.Attributes,
+				"attributes": converAttributesToJSON(f.Attributes),
+				"events":     f.Events,
 				"children":   convertFragmentsToJSON(f.Children),
 			})
 		case *Text:

@@ -192,17 +192,21 @@ func App(props goat.Props) goat.Block {
 	counterComponent := Counter(goat.Props{
 		"count": props["count"],
 	})
+
+	className := "min-h-screen bg-zinc-900 overflow-hidden"
+
 	featuresSection := FeaturesSection(goat.Props{})
 
 	derivedProps := goat.Props{
 		"heroSection":      heroSection,
 		"counterComponent": counterComponent,
 		"featuresSection":  featuresSection,
+		"className":        className,
 	}
 
 	return goat.BlockElement(func(p goat.Props) goat.Vnode {
 		return goat.CreateVirtualElements("div",
-			goat.Props{"class": "min-h-screen bg-zinc-900 overflow-hidden"},
+			goat.Props{"class": goat.Get("className")},
 			goat.Get("heroSection"),
 			goat.Get("counterComponent"),
 			goat.Get("featuresSection"),

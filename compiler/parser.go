@@ -18,6 +18,7 @@ type Fragment interface{}
 type Element struct {
 	Type       string
 	Name       string
+	Events     []Event
 	Attributes []Attribute
 	Children   []Fragment
 }
@@ -26,6 +27,12 @@ type Attribute struct {
 	Type  string
 	Name  string
 	Value interface{} // Will hold parsed Go expression
+}
+
+type Event struct {
+	Type  string
+	Name  string
+	Value interface{}
 }
 
 type Expression struct {
@@ -90,11 +97,11 @@ func (p *Parser) parseFragment() (Fragment, error) {
 	} else if element != nil {
 		return element, nil
 	}
-	// if expr, err := p.parseExpression(); err != nil {
-	// 	return nil, err
-	// } else if expr != nil {
-	// 	return expr, nil
-	// }
+	if expr, err := p.parseExpression(); err != nil {
+		return nil, err
+	} else if expr != nil {
+		return expr, nil
+	}
 	if text := p.parseText(); text != nil {
 		return text, nil
 	}
@@ -113,7 +120,7 @@ func (p *Parser) parseScript() (Fragment, error) {
 		code := p.content[startIndex:endIndex]
 
 		// Parse Go code using go/parser
-		expr, err := parser.ParseFile(p.fset, "", "package main\n"+code, parser.AllErrors)
+		expr, err := parser.ParseFile(p.fset, "", "package main\n func main() {\n"+code+"\n}", parser.AllErrors)
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse Go code: %v", err)
 		}
@@ -125,15 +132,67 @@ func (p *Parser) parseScript() (Fragment, error) {
 	return nil, nil
 }
 
+func (p *Parser) parseComponent() (*Element, error) {
+	componentName := p.readWhileMatching("[A-Za-z0-9]")
+	attributes, _, err := p.parseAttributeList()
+	if err != nil {
+		return nil, err
+	}
+
+	if p.match("/>") {
+		p.eat("/>")
+		return &Element{
+			Type:       "Component",
+			Name:       componentName,
+			Events:     nil,
+			Attributes: attributes,
+			Children:   nil,
+		}, nil
+	}
+	p.eat(">")
+	endTag := fmt.Sprintf("</%s>", componentName)
+
+	children, err := p.parseFragments(func() bool {
+		return !p.match(endTag)
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	p.eat(endTag)
+
+	return &Element{
+		Type:       "Component",
+		Name:       componentName,
+		Attributes: attributes,
+		Children:   children,
+	}, nil
+}
+
 func (p *Parser) parseElement() (*Element, error) {
 	if p.match("<") {
 		p.eat("<")
+
+		if p.startsWith("[A-Z]") {
+			return p.parseComponent()
+		}
+
 		tagName := p.readWhileMatching("[a-z0-9]")
-		attributes, err := p.parseAttributeList()
+		attributes, events, err := p.parseAttributeList()
 		if err != nil {
 			return nil, err
 		}
 
+		if p.match("/>") {
+			p.eat("/>")
+			return &Element{
+				Type:       "Element",
+				Name:       tagName,
+				Events:     events,
+				Attributes: attributes,
+				Children:   nil,
+			}, nil
+		}
 		p.eat(">")
 		endTag := fmt.Sprintf("</%s>", tagName)
 
@@ -149,6 +208,7 @@ func (p *Parser) parseElement() (*Element, error) {
 		return &Element{
 			Type:       "Element",
 			Name:       tagName,
+			Events:     events,
 			Attributes: attributes,
 			Children:   children,
 		}, nil
@@ -156,30 +216,40 @@ func (p *Parser) parseElement() (*Element, error) {
 	return nil, nil
 }
 
-func (p *Parser) parseAttributeList() ([]Attribute, error) {
+func (p *Parser) parseAttributeList() ([]Attribute, []Event, error) {
 	var attributes []Attribute
+	var events []Event
 	p.skipWhitespace()
 
-	for !p.match(">") {
+	for !(p.match(">") || p.match("/>")) {
+
+		if p.startsWith("@") {
+			p.eat("@")
+			event, err := p.parseEvent()
+			if err != nil {
+				return nil, nil, err
+			}
+			events = append(events, *event)
+			p.skipWhitespace()
+			continue
+		}
+
 		attr, err := p.parseAttribute()
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 		attributes = append(attributes, *attr)
 		p.skipWhitespace()
 	}
 
-	return attributes, nil
+	return attributes, events, nil
 }
 
 func (p *Parser) parseAttribute() (*Attribute, error) {
 	name := p.readWhileMatching("[^=]")
-	fmt.Print(name)
 	p.eat(`={`)
 
-	// Parse Go expression
 	exprStr := p.readWhileMatching("[^}]")
-	fmt.Println(exprStr)
 	expr, err := parser.ParseExpr(exprStr)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse Go expression: %v", err)
@@ -191,6 +261,19 @@ func (p *Parser) parseAttribute() (*Attribute, error) {
 		Type:  "Attribute",
 		Name:  name,
 		Value: expr,
+	}, nil
+}
+
+func (p *Parser) parseEvent() (*Event, error) {
+	eventType := p.readWhileMatching("[^=]")
+	p.eat(`={`)
+	functionName := p.readWhileMatching("[^}]")
+	p.eat(`}`)
+
+	return &Event{
+		Type:  eventType,
+		Name:  functionName,
+		Value: nil,
 	}, nil
 }
 
@@ -245,7 +328,6 @@ func (p *Parser) readWhileMatching(pattern string) string {
 	re := regexp.MustCompile(pattern)
 	startPos := p.pos
 	for p.pos < len(p.content) {
-		fmt.Println(string(p.content[p.pos]), pattern)
 		if !re.MatchString(string(p.content[p.pos])) {
 			break
 		}
@@ -256,4 +338,9 @@ func (p *Parser) readWhileMatching(pattern string) string {
 
 func (p *Parser) skipWhitespace() {
 	p.readWhileMatching(`[\s\n]`)
+}
+
+func (p *Parser) startsWith(pattern string) bool {
+	re := regexp.MustCompile(pattern)
+	return re.MatchString(string(p.content[p.pos]))
 }

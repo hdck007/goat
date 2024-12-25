@@ -23,7 +23,7 @@ func Render(
 
 	if virtualElement.props != nil {
 		for k, v := range virtualElement.props {
-			if reflect.TypeOf(v).String() == "goat.Placeholder" {
+			if reflect.TypeOf(v).String() == "*goat.Placeholder" {
 				*edits = append(*edits, &EditAttribute{
 					editType:  "attribute",
 					path:      path,

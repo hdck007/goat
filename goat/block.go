@@ -70,11 +70,11 @@ func BlockElement(fn func(originalProp Props) Vnode, props Props) func() Block {
 					value := props[edit.key]
 					newValue := newBlock.props[edit.key]
 					if value == newValue {
-						return
+						continue
 					}
 					thisEl := elements[editIndex]
 					thisEl.Call("setAttribute", edit.attribute, newValue)
-					return
+					continue
 				}
 
 				edit := editUnionObject.getChildEditValue()
@@ -87,7 +87,7 @@ func BlockElement(fn func(originalProp Props) Vnode, props Props) func() Block {
 				}
 
 				if value == newValue {
-					return
+					continue
 				}
 
 				props[edit.key] = newValue

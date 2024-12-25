@@ -1,17 +1,16 @@
 {
   "html": [
     {
-      "attributes": null,
+      "attributes": [],
       "children": [
         {
           "attributes": [
             {
-              "Type": "Attribute",
-              "Name": "class",
-              "Value": {
-                "ValuePos": 1,
-                "Kind": 9,
-                "Value": "\"bg-none py-4 rounded-mg border border-black m-4\""
+              "name": "class",
+              "type": "Attribute",
+              "value": {
+                "type": "Literal",
+                "value": "\"bg-none py-4 rounded-mg border border-black m-4\""
               }
             }
           ],
@@ -21,31 +20,40 @@
               "value": "Click"
             }
           ],
+          "events": null,
           "name": "button",
           "type": "Element"
         },
         {
           "attributes": [
             {
-              "Type": "Attribute",
-              "Name": "class",
-              "Value": {
-                "ValuePos": 1,
-                "Kind": 9,
-                "Value": "\"text-red\""
+              "name": "class",
+              "type": "Attribute",
+              "value": {
+                "type": "Identifier",
+                "value": "className"
               }
             }
           ],
           "children": [
             {
               "type": "Text",
-              "value": "\n        Hello name, How are you?\n        mello padre ami imorto\n    "
+              "value": "\n        This is my site here, hello "
+            },
+            {
+              "expression": {
+                "type": "Identifier",
+                "value": "name"
+              },
+              "type": "Expression"
             }
           ],
+          "events": null,
           "name": "h1",
           "type": "Element"
         }
       ],
+      "events": null,
       "name": "div",
       "type": "Element"
     }
