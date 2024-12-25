@@ -14,14 +14,14 @@ func main() {
 	ast, error := Parse(string(b))
 
 	if error != nil {
-		fmt.Println("Error occured while parsing", error)
+		fmt.Println("Error occurred while parsing: ", error)
 		return
 	}
 
 	astJson, printingError := ast.ToJSON()
 
 	if printingError != nil {
-		println("Error while printing")
+		println("Error while printing: ", printingError)
 	}
 
 	os.WriteFile("ast.json", []byte(astJson), 0644)
