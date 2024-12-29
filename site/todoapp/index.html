@@ -1,0 +1,39 @@
+<!doctype html>
+<html class="bg-zinc-900">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta
+            name="description"
+            content="Explore the cutting-edge features of our platform, powered by WebAssembly for native-like performance, lightning-fast DOM updates, and smart diffing algorithms. Enhance your digital experience today!"
+        />
+        <title>
+            Next-Gen Performance: Harnessing WebAssembly for Fast & Efficient
+            Updates
+        </title>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <script src="wasm_exec.js"></script>
+        <script>
+            if (!WebAssembly.instantiateStreaming) {
+                // polyfill
+                WebAssembly.instantiateStreaming = async (
+                    resp,
+                    importObject,
+                ) => {
+                    const source = await (await resp).arrayBuffer();
+                    return await WebAssembly.instantiate(source, importObject);
+                };
+            }
+            const go = new Go();
+            WebAssembly.instantiateStreaming(
+                fetch("main.wasm"),
+                go.importObject,
+            ).then((result) => {
+                go.run(result.instance);
+            });
+        </script>
+    </head>
+    <body class="min-h-screen">
+        <div id="root" class="h-screen"></div>
+    </body>
+</html>

@@ -8,9 +8,12 @@ import (
 	"strings"
 )
 
+type Script struct {
+	Value string
+}
 type AST struct {
 	HTML   []Fragment
-	Script interface{} // Will hold parsed Go code
+	Script *Script
 }
 
 type Fragment interface{}
@@ -35,9 +38,14 @@ type Event struct {
 	Value interface{}
 }
 
+type ExpressionValue struct {
+	Type  string
+	Value interface{}
+}
+
 type Expression struct {
 	Type       string
-	Expression interface{} // Will hold parsed Go expression
+	Expression interface{}
 }
 
 type Text struct {
@@ -59,7 +67,7 @@ func Parse(content string) (*AST, error) {
 	}
 
 	ast := &AST{}
-	fragments, err := p.parseFragments(func() bool {
+	fragments, script, err := p.parseFragments(func() bool {
 		return p.pos < len(p.content)
 	})
 	if err != nil {
@@ -67,23 +75,39 @@ func Parse(content string) (*AST, error) {
 	}
 
 	ast.HTML = fragments
+	ast.Script = script
 	return ast, nil
 }
 
-func (p *Parser) parseFragments(condition func() bool) ([]Fragment, error) {
+func (p *Parser) parseFragments(condition func() bool) ([]Fragment, *Script, error) {
 	var fragments []Fragment
+	var script Script
 
 	for condition() {
 		fragment, err := p.parseFragment()
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 		if fragment != nil {
-			fragments = append(fragments, fragment)
+
+			switch fragment.(type) {
+			case Script:
+				{
+					script = Script{
+						Value: fragment.(Script).Value,
+					}
+				}
+			default:
+				{
+					fragments = append(fragments, fragment)
+					break
+				}
+			}
+
 		}
 	}
 
-	return fragments, nil
+	return fragments, &script, nil
 }
 
 func (p *Parser) parseFragment() (Fragment, error) {
@@ -118,16 +142,11 @@ func (p *Parser) parseScript() (Fragment, error) {
 		}
 		endIndex += p.pos
 		code := p.content[startIndex:endIndex]
-
-		// Parse Go code using go/parser
-		expr, err := parser.ParseFile(p.fset, "", "package main\n func main() {\n"+code+"\n}", parser.AllErrors)
-		if err != nil {
-			return nil, fmt.Errorf("failed to parse Go code: %v", err)
-		}
-
 		p.pos = endIndex
 		p.eat("</script>")
-		return expr, nil
+		return Script{
+			Value: code,
+		}, nil
 	}
 	return nil, nil
 }
@@ -152,7 +171,7 @@ func (p *Parser) parseComponent() (*Element, error) {
 	p.eat(">")
 	endTag := fmt.Sprintf("</%s>", componentName)
 
-	children, err := p.parseFragments(func() bool {
+	children, _, err := p.parseFragments(func() bool {
 		return !p.match(endTag)
 	})
 	if err != nil {
@@ -196,7 +215,7 @@ func (p *Parser) parseElement() (*Element, error) {
 		p.eat(">")
 		endTag := fmt.Sprintf("</%s>", tagName)
 
-		children, err := p.parseFragments(func() bool {
+		children, _, err := p.parseFragments(func() bool {
 			return !p.match(endTag)
 		})
 		if err != nil {
@@ -281,7 +300,6 @@ func (p *Parser) parseExpression() (*Expression, error) {
 	if p.match("{") {
 		p.eat("{")
 
-		// Parse Go expression
 		exprStr := p.readWhileMatching("[^}]")
 		expr, err := parser.ParseExpr(exprStr)
 		if err != nil {

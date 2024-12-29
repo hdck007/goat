@@ -5,5 +5,6 @@
 <div>
     <h1 class="text-red" >
     Hello {count}, How are you? {doubledCount}
+    <Map elements={elements} render={func} />
     </h1>
 </div>

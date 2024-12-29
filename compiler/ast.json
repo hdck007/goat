@@ -57,5 +57,9 @@
       "name": "div",
       "type": "Element"
     }
-  ]
+  ],
+  "script": {
+    "body": "\n    name := \"hello\"\n    className := \"bg-gray-100\"\n",
+    "type": "Program"
+  }
 }

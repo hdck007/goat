@@ -18,11 +18,7 @@ func main() {
 		return
 	}
 
-	astJson, printingError := ast.ToJSON()
+	generatedCode := Generate(*ast)
 
-	if printingError != nil {
-		println("Error while printing: ", printingError)
-	}
-
-	os.WriteFile("ast.json", []byte(astJson), 0644)
+	os.WriteFile("output.goat", []byte(generatedCode), 0644)
 }
