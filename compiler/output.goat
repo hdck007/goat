@@ -1,0 +1,40 @@
+
+		func App(props goat.Props) goat.Block {
+			componentName6903184217610068446 := goat.Block{
+				Patch: func(goat.Block) {},
+				Mount: func(js.Value) {},
+			}
+
+			
+    name := "hello"
+    className := "bg-gray-100"
+derivedProps := goat.Props {"className": className,"name": name,}
+		for k, v := range props {
+			derivedProps[k] = v
+		}
+	
+
+			componentName6903184217610068446 = goat.BlockElement(func(p goat.Props) goat.Vnode {
+				return goat.CreateVirtualElements("div", goat.Props{},goat.CreateVirtualElements("button", goat.Props{"class":"\"bg-none py-4 rounded-mg border border-black m-4\"",},goat.CreateVirtualElements("text", nil,
+		&goat.TextOrElement{
+			StringValue: "Click",
+			Element:     nil,
+		},
+	),),goat.CreateVirtualElements("h1", goat.Props{"class":goat.Get("className")},goat.CreateVirtualElements("text", nil,
+		&goat.TextOrElement{
+			StringValue: "\n        This is my site here, hello ",
+			Element:     nil,
+		},
+	),goat.CreateVirtualElements("text", nil,
+		goat.Get("name"),
+	),),goat.CreateVirtualElements("div", goat.Props{},goat.CreateVirtualElements("p", goat.Props{},goat.CreateVirtualElements("text", nil,
+		&goat.TextOrElement{
+			StringValue: "Seema",
+			Element:     nil,
+		},
+	),),),)
+			}, derivedProps)()
+
+			return componentName6903184217610068446
+		}
+	

@@ -15,6 +15,12 @@ type EditChild struct {
 	key      string
 }
 
+type EventListener struct {
+	eventType  string
+	executable interface{}
+	path       []int
+}
+
 type Edits interface {
 	isChildEdit() bool
 	isAttributeEdit() bool

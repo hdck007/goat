@@ -186,21 +186,68 @@ func FeaturesSection(props goat.Props) goat.Block {
 	}, props)()
 }
 
-// Main app component
+// FooterSection component with GitHub and Live Example links
+func FooterSection(props goat.Props) goat.Block {
+	return goat.BlockElement(func(p goat.Props) goat.Vnode {
+		return goat.CreateVirtualElements("div",
+			goat.Props{"class": "absolute bottom-4 right-4 text-white flex items-center space-x-4 z-20"},
+			// GitHub Link with Icon
+			goat.CreateVirtualElements("a",
+				goat.Props{
+					"href":   "https://github.com/hdck007/goat",
+					"target": "_blank",
+					"rel":    "noopener noreferrer",
+					"class":  "flex items-center space-x-2 hover:text-blue-300",
+				},
+				goat.CreateVirtualElements("img",
+					goat.Props{
+						"src":   "/github-icon.png",
+						"alt":   "GitHub Icon",
+						"class": "w-6 h-6",
+					},
+				),
+				goat.CreateVirtualElements("span",
+					goat.Props{"class": "text-sm"},
+					goat.CreateVirtualElements("text", nil,
+						&goat.TextOrElement{
+							StringValue: "GitHub",
+						},
+					),
+				),
+			),
+
+			// Live Example Link
+			goat.CreateVirtualElements("a",
+				goat.Props{
+					"href":   "/todoapp",
+					"target": "_blank",
+					"rel":    "noopener noreferrer",
+					"class":  "text-sm hover:text-blue-300",
+				},
+				goat.CreateVirtualElements("text", nil,
+					&goat.TextOrElement{
+						StringValue: "Live Example",
+					},
+				),
+			),
+		)
+	}, props)()
+}
+
 func App(props goat.Props) goat.Block {
 	heroSection := HeroSection(goat.Props{})
 	counterComponent := Counter(goat.Props{
 		"count": props["count"],
 	})
+	featuresSection := FeaturesSection(goat.Props{})
+	footer := FooterSection(goat.Props{})
 
 	className := "min-h-screen bg-zinc-900 overflow-hidden"
-
-	featuresSection := FeaturesSection(goat.Props{})
-
 	derivedProps := goat.Props{
 		"heroSection":      heroSection,
 		"counterComponent": counterComponent,
 		"featuresSection":  featuresSection,
+		"footer":           footer,
 		"className":        className,
 	}
 
@@ -210,11 +257,15 @@ func App(props goat.Props) goat.Block {
 			goat.Get("heroSection"),
 			goat.Get("counterComponent"),
 			goat.Get("featuresSection"),
+			goat.Get("footer"),
 		)
 	}, derivedProps)()
 }
 
 func main() {
+
+	done := make(chan struct{}, 0)
+
 	count := 0
 	component := App(goat.Props{
 		"count": count,
@@ -240,5 +291,5 @@ func main() {
 		}
 	}()
 
-	select {}
+	<-done
 }

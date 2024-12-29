@@ -105,11 +105,9 @@ func (a *AST) ToJSON() (string, error) {
 	}
 
 	if a.Script != nil {
-		if file, ok := a.Script.(*ast.File); ok {
-			astMap["script"] = map[string]interface{}{
-				"type": "Program",
-				"body": convertGoASTToJSON(file),
-			}
+		astMap["script"] = map[string]interface{}{
+			"type": "Program",
+			"body": a.Script.Value,
 		}
 	}
 
