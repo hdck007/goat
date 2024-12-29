@@ -26,7 +26,7 @@
             }
             const go = new Go();
             WebAssembly.instantiateStreaming(
-                fetch("main.wasm"),
+                fetch("/todoapp/main.wasm"),
                 go.importObject,
             ).then((result) => {
                 go.run(result.instance);
