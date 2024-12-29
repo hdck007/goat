@@ -190,14 +190,14 @@ func FeaturesSection(props goat.Props) goat.Block {
 func FooterSection(props goat.Props) goat.Block {
 	return goat.BlockElement(func(p goat.Props) goat.Vnode {
 		return goat.CreateVirtualElements("div",
-			goat.Props{"class": "absolute bottom-4 right-4 text-white flex items-center space-x-4 z-20"},
+			goat.Props{"class": "absolute top-6 left-6 text-white font-semibold text-base flex items-center space-x-6 z-20"},
 			// GitHub Link with Icon
 			goat.CreateVirtualElements("a",
 				goat.Props{
 					"href":   "https://github.com/hdck007/goat",
 					"target": "_blank",
 					"rel":    "noopener noreferrer",
-					"class":  "flex items-center space-x-2 hover:text-blue-300",
+					"class":  "flex items-center space-x-2 hover:text-blue-300 text-lg font-semibold",
 				},
 				goat.CreateVirtualElements("img",
 					goat.Props{
@@ -207,7 +207,7 @@ func FooterSection(props goat.Props) goat.Block {
 					},
 				),
 				goat.CreateVirtualElements("span",
-					goat.Props{"class": "text-sm"},
+					goat.Props{"class": "text-lg"},
 					goat.CreateVirtualElements("text", nil,
 						&goat.TextOrElement{
 							StringValue: "GitHub",
@@ -222,7 +222,7 @@ func FooterSection(props goat.Props) goat.Block {
 					"href":   "/todoapp",
 					"target": "_blank",
 					"rel":    "noopener noreferrer",
-					"class":  "text-sm hover:text-blue-300",
+					"class":  "hover:text-blue-300",
 				},
 				goat.CreateVirtualElements("text", nil,
 					&goat.TextOrElement{
