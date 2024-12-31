@@ -146,14 +146,6 @@ func BlockElement(fn func(originalProp Props) Vnode, props Props) func() Block {
 		}
 
 		unmount := func() {
-			for _, listener := range listeners {
-				thisEl := root
-				for _, path := range listener.path {
-					elementChild := thisEl.Get("childNodes")
-					thisEl = elementChild.Index(path)
-				}
-				thisEl.Call("removeEventListener", listener.eventType, listener.executable)
-			}
 
 			parentOfCurrent.Call("removeChild", element)
 		}
@@ -215,7 +207,8 @@ func ArrayBlockElement(
 
 			for i := 0; i < maxLength; i++ {
 				if i < len(oldChildren) && i < len(newChildren) {
-					oldChildren[i].Patch(newChildren[i])
+					oldChildren[i].Unmount()
+					newChildren[i].Mount(element)
 				} else if i >= len(oldChildren) {
 					newChildren[i].Mount(element)
 				} else if i >= len(newChildren) {

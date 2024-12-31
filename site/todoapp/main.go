@@ -1,4 +1,4 @@
-package todoapp
+package main
 
 import (
 	"syscall/js"
@@ -32,7 +32,7 @@ func TodoElement(props goat.Props) goat.Block {
 			goat.CreateVirtualElements(
 				"button",
 				goat.Props{
-					"class":  "bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded",
+					"class":  "bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded",
 					"@click": handleDeleteCallback,
 				},
 				goat.CreateVirtualElements("text", nil,
@@ -161,6 +161,20 @@ func App(props goat.Props) goat.Block {
 		return goat.BlockElement(func(p goat.Props) goat.Vnode {
 			return goat.CreateVirtualElements("div",
 				goat.Props{"class": "p-4 text-white"},
+				// Header and Description
+				goat.CreateVirtualElements("h1",
+					goat.Props{"class": "text-3xl font-bold mb-2"},
+					goat.CreateVirtualElements("text", nil, &goat.TextOrElement{
+						StringValue: "Todo List App",
+					}),
+				),
+				goat.CreateVirtualElements("p",
+					goat.Props{"class": "mb-4"},
+					goat.CreateVirtualElements("text", nil, &goat.TextOrElement{
+						StringValue: "A simple todo list app built using Goat VDOM and Go.",
+					}),
+				),
+				// Input and Button
 				goat.CreateVirtualElements("input",
 					goat.Props{"class": "border text-black border-white p-2 mr-4", "@input": handleChange,
 						"value": goat.Get("value")},
@@ -174,6 +188,7 @@ func App(props goat.Props) goat.Block {
 						Element:     nil,
 					}),
 				),
+				// Todo List
 				goat.Get("todoList"),
 			)
 		}, currentProps)()
