@@ -1,0 +1,11 @@
+<imports>
+    import (
+        "syscall/js"
+
+        "github.com/hdck007/goat/goat"
+    )
+</imports>
+
+<div>
+    Hello
+</div>

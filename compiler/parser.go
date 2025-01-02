@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"go/parser"
 	"go/token"
+	"os"
 	"regexp"
 	"strings"
 )
@@ -11,9 +12,22 @@ import (
 type Script struct {
 	Value string
 }
+
+type Imports struct {
+	Imports []Import
+}
+
+type Import struct {
+	Type  string
+	File  string
+	Name  string
+	Value interface{}
+}
+
 type AST struct {
-	HTML   []Fragment
-	Script *Script
+	HTML    []Fragment
+	Script  *Script
+	Imports *Imports
 }
 
 type Fragment interface{}
@@ -67,7 +81,7 @@ func Parse(content string) (*AST, error) {
 	}
 
 	ast := &AST{}
-	fragments, script, err := p.parseFragments(func() bool {
+	fragments, script, imports, err := p.parseFragments(func() bool {
 		return p.pos < len(p.content)
 	})
 	if err != nil {
@@ -76,26 +90,55 @@ func Parse(content string) (*AST, error) {
 
 	ast.HTML = fragments
 	ast.Script = script
+	ast.Imports = imports
 	return ast, nil
 }
 
-func (p *Parser) parseFragments(condition func() bool) ([]Fragment, *Script, error) {
+func ParseFile(fileName string) (*AST, error) {
+	b, err := os.ReadFile(fileName)
+	if err != nil {
+		fmt.Print(err)
+	}
+
+	ast, error := Parse(string(b))
+
+	if error != nil {
+		fmt.Println("Error occurred while parsing: ", error)
+	}
+
+	return ast, nil
+}
+
+func (p *Parser) parseFragments(condition func() bool) ([]Fragment, *Script, *Imports, error) {
 	var fragments []Fragment
 	var script Script
+	var imports Imports
 
 	for condition() {
 		fragment, err := p.parseFragment()
 		if err != nil {
-			return nil, nil, err
+			return nil, nil, nil, err
 		}
 		if fragment != nil {
 
-			switch fragment.(type) {
+			switch fragmentValue := fragment.(type) {
 			case Script:
 				{
 					script = Script{
-						Value: fragment.(Script).Value,
+						Value: fragmentValue.Value,
 					}
+					break
+				}
+			case *Element:
+				{
+					fragments = append(fragments, fragment)
+
+					break
+				}
+			case Imports:
+				{
+					imports = fragmentValue
+					break
 				}
 			default:
 				{
@@ -107,10 +150,15 @@ func (p *Parser) parseFragments(condition func() bool) ([]Fragment, *Script, err
 		}
 	}
 
-	return fragments, &script, nil
+	return fragments, &script, &imports, nil
 }
 
 func (p *Parser) parseFragment() (Fragment, error) {
+	if imports, err := p.parseImports(); err != nil {
+		return nil, err
+	} else if imports != nil {
+		return imports, nil
+	}
 	if script, err := p.parseScript(); err != nil {
 		return nil, err
 	} else if script != nil {
@@ -128,6 +176,63 @@ func (p *Parser) parseFragment() (Fragment, error) {
 	}
 	if text := p.parseText(); text != nil {
 		return text, nil
+	}
+	return nil, nil
+}
+
+func (p *Parser) parseImports() (Fragment, error) {
+	imports := []Import{}
+	if p.match("<imports>") {
+		p.eat("<imports>")
+		startIndex := p.pos
+		endIndex := strings.Index(p.content[p.pos:], "</imports>")
+		if endIndex == -1 {
+			return nil, fmt.Errorf("unclosed imports tag")
+		}
+		endIndex += p.pos
+		code := p.content[startIndex:endIndex]
+		p.pos = endIndex
+		p.eat("</imports>")
+
+		re := regexp.MustCompile(`import\s+(\w+)\s+from\s+"(.+)"`)
+
+		matches := re.FindAllStringSubmatch(code, -1)
+
+		for _, match := range matches {
+			if len(match) == 3 {
+				componentName := match[1]
+				fileName := match[2]
+
+				imports = append(imports, Import{
+					File:  fileName,
+					Name:  componentName,
+					Type:  "import",
+					Value: componentName,
+				})
+			}
+		}
+
+		goalngImportsRegex := regexp.MustCompile(`"([^"]+)"`)
+
+		golangImportMatches := goalngImportsRegex.FindAllStringSubmatch(code, -1)
+
+		for _, match := range golangImportMatches {
+			if len(match) > 1 {
+				importPath := match[1]
+				if !strings.HasSuffix(importPath, ".goat") {
+					imports = append(imports, Import{
+						File:  "",
+						Type:  "golangImport",
+						Name:  importPath,
+						Value: importPath,
+					})
+				}
+			}
+		}
+
+		return Imports{
+			Imports: imports,
+		}, nil
 	}
 	return nil, nil
 }
@@ -171,7 +276,7 @@ func (p *Parser) parseComponent() (*Element, error) {
 	p.eat(">")
 	endTag := fmt.Sprintf("</%s>", componentName)
 
-	children, _, err := p.parseFragments(func() bool {
+	children, _, _, err := p.parseFragments(func() bool {
 		return !p.match(endTag)
 	})
 	if err != nil {
@@ -215,7 +320,7 @@ func (p *Parser) parseElement() (*Element, error) {
 		p.eat(">")
 		endTag := fmt.Sprintf("</%s>", tagName)
 
-		children, _, err := p.parseFragments(func() bool {
+		children, _, _, err := p.parseFragments(func() bool {
 			return !p.match(endTag)
 		})
 		if err != nil {

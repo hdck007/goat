@@ -10,46 +10,129 @@
               "type": "Attribute",
               "value": {
                 "type": "Literal",
-                "value": "\"bg-none py-4 rounded-mg border border-black m-4\""
+                "value": "\"p-4 text-white\""
               }
             }
           ],
           "children": [
             {
-              "type": "Text",
-              "value": "Click"
-            }
-          ],
-          "events": null,
-          "name": "button",
-          "type": "Element"
-        },
-        {
-          "attributes": [
-            {
-              "name": "class",
-              "type": "Attribute",
-              "value": {
-                "type": "Identifier",
-                "value": "className"
-              }
-            }
-          ],
-          "children": [
-            {
-              "type": "Text",
-              "value": "\n        This is my site here, hello "
+              "attributes": [
+                {
+                  "name": "class",
+                  "type": "Attribute",
+                  "value": {
+                    "type": "Literal",
+                    "value": "\"text-3xl font-bold mb-2\""
+                  }
+                }
+              ],
+              "children": [
+                {
+                  "type": "Text",
+                  "value": "\n        Todo List App\n    "
+                }
+              ],
+              "events": null,
+              "name": "h1",
+              "type": "Element"
             },
             {
-              "expression": {
-                "type": "Identifier",
-                "value": "name"
-              },
-              "type": "Expression"
+              "attributes": [
+                {
+                  "name": "class",
+                  "type": "Attribute",
+                  "value": {
+                    "type": "Literal",
+                    "value": "\"mb-4\""
+                  }
+                }
+              ],
+              "children": [
+                {
+                  "type": "Text",
+                  "value": "\n        A simple todo list app built using Goat VDOM and Go.\n    "
+                }
+              ],
+              "events": null,
+              "name": "p",
+              "type": "Element"
+            },
+            {
+              "attributes": [
+                {
+                  "name": "class",
+                  "type": "Attribute",
+                  "value": {
+                    "type": "Literal",
+                    "value": "\"border text-black border-white p-2 mr-4\""
+                  }
+                },
+                {
+                  "name": "value",
+                  "type": "Attribute",
+                  "value": {
+                    "type": "Identifier",
+                    "value": "inputValue"
+                  }
+                }
+              ],
+              "children": [],
+              "events": [
+                {
+                  "Type": "input",
+                  "Name": "handleChange",
+                  "Value": null
+                }
+              ],
+              "name": "input",
+              "type": "Element"
+            },
+            {
+              "attributes": [
+                {
+                  "name": "class",
+                  "type": "Attribute",
+                  "value": {
+                    "type": "Literal",
+                    "value": "\"bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded\""
+                  }
+                }
+              ],
+              "children": [
+                {
+                  "type": "Text",
+                  "value": "\n        Add\n    "
+                }
+              ],
+              "events": [
+                {
+                  "Type": "click",
+                  "Name": "handleClick",
+                  "Value": null
+                }
+              ],
+              "name": "button",
+              "type": "Element"
+            },
+            {
+              "attributes": [
+                {
+                  "name": "handleDelete",
+                  "type": "Attribute",
+                  "value": {
+                    "type": "Identifier",
+                    "value": "handleDelete"
+                  }
+                }
+              ],
+              "children": [],
+              "events": null,
+              "name": "TodoElement",
+              "type": "Component"
             }
           ],
           "events": null,
-          "name": "h1",
+          "name": "div",
           "type": "Element"
         }
       ],
@@ -58,8 +141,17 @@
       "type": "Element"
     }
   ],
+  "imports": {
+    "imports": [
+      {
+        "File": "./todoelement.goat",
+        "Name": "TodoElement"
+      }
+    ],
+    "type": "Imports"
+  },
   "script": {
-    "body": "\n    name := \"hello\"\n    className := \"bg-gray-100\"\n",
+    "body": "\n    elements, setElements := createState([]string{})\n    inputValue, setInputValue := createState(\"\")\n\n    remove := func(slice []string, index int) []string {\n\t    return append(slice[:index], slice[index+1:]...)\n    }\n\n    handleChange := js.FuncOf(func(this js.Value, args []js.Value) interface{} {\n\t\tinputValue = args[0].Get(\"target\").Get(\"value\").String()\n\t\tsetInputValue(inputValue)\n\t\treturn nil\n\t})\n\n    handleClick := js.FuncOf(func(this js.Value, args []js.Value) interface{} {\n\t\tif inputValue == \"\" {\n\t\t\treturn nil\n\t\t}\n\t\telements = append(elements, inputValue)\n        setElements(elements)\n        setInputValue(\"\")\n\t\treturn nil\n\t})\n\n    handleDelete := func(index int) {\n\t\telements = remove(elements, index)\n        setElements(elements)\n\t}\n",
     "type": "Program"
   }
 }

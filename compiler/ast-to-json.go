@@ -111,6 +111,13 @@ func (a *AST) ToJSON() (string, error) {
 		}
 	}
 
+	if a.Imports != nil {
+		astMap["imports"] = map[string]interface{}{
+			"type":    "Imports",
+			"imports": a.Imports.Imports,
+		}
+	}
+
 	jsonBytes, err := json.MarshalIndent(astMap, "", "  ")
 	if err != nil {
 		return "", fmt.Errorf("failed to marshal AST to JSON: %v", err)

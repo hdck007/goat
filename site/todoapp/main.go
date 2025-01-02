@@ -53,11 +53,11 @@ func TodoList(props goat.Props) goat.ArrayBlock {
 		Mount: func(js.Value) js.Value {
 			return js.Null()
 		},
-		Patch: func(elements []string) {},
+		Patch: func(elements []interface{}) {},
 	}
 	blockGenerator := func(props goat.Props) goat.ArrayBlock {
 		return goat.ArrayBlock{
-			Patch: func(elements []string) {},
+			Patch: func(elements []interface{}) {},
 			Mount: func(js.Value) js.Value {
 				return js.Null()
 			},
@@ -66,7 +66,7 @@ func TodoList(props goat.Props) goat.ArrayBlock {
 
 	blockGenerator = func(currentProps goat.Props) goat.ArrayBlock {
 		return goat.ArrayBlockElement("elements",
-			func(element string, index int) goat.Block {
+			func(element interface{}, index int) goat.Block {
 				return TodoElement(goat.Props{
 					"element":      element,
 					"handleDelete": props["handleDelete"],
@@ -92,13 +92,15 @@ func remove(slice []string, index int) []string {
 
 func App(props goat.Props) goat.Block {
 
-	block := goat.Block{
+	block8604571377814938500 := &goat.Block{
 		Patch: func(goat.Block) {},
 		Mount: func(js.Value) js.Value {
-			return js.Null()
+			return js.Undefined()
 		},
 	}
-	blockGenerator := func(props goat.Props) goat.Block {
+	derivedProps := &goat.Props{}
+
+	block8604571377814938500generator := func(props goat.Props) goat.Block {
 		return goat.Block{
 			Patch: func(goat.Block) {},
 			Mount: func(js.Value) js.Value {
@@ -107,100 +109,86 @@ func App(props goat.Props) goat.Block {
 		}
 	}
 
-	elements := make([]string, 0)
+	context := &goat.Context{
+		CreateBlock: block8604571377814938500generator,
+		Block:       block8604571377814938500,
+		Props:       &goat.Props{},
+	}
 
-	text := ""
+	elements, setElements := context.CreateState([]string{}, "elements")
+	inputValue, setInputValue := context.CreateState("", "inputValue")
 
-	todoList := goat.ArrayBlock{}
+	remove := func(slice []string, index int) []string {
+		return append(slice[:index], slice[index+1:]...)
+	}
 
 	handleChange := js.FuncOf(func(this js.Value, args []js.Value) interface{} {
-		text = args[0].Get("target").Get("value").String()
-		block.Patch(blockGenerator(
-			goat.Props{
-				"value":    text,
-				"todoList": todoList,
-				"elements": elements,
-			},
-		))
+		inputValue = args[0].Get("target").Get("value").String()
+		setInputValue(inputValue)
 		return nil
 	})
 
 	handleClick := js.FuncOf(func(this js.Value, args []js.Value) interface{} {
-		if text == "" {
+		if inputValue == "" {
 			return nil
 		}
-		elements = append(elements, text)
-		text = ""
-		block.Patch(blockGenerator(
-			goat.Props{
-				"value":    text,
-				"todoList": todoList,
-				"elements": elements,
-			},
-		))
+
+		switch convertedElement := elements.(type) {
+		case []string:
+			elements = append(convertedElement, inputValue.(string))
+		case []interface{}:
+			elements = append(convertedElement, inputValue)
+		}
+
+		setElements(elements)
+		setInputValue("")
 		return nil
 	})
 
 	handleDelete := func(index int) {
-		elements = remove(elements, index)
-		block.Patch(blockGenerator(
-			goat.Props{
-				"elements": elements,
-				"text":     text,
-				"todoList": todoList,
-			},
-		))
+		elements = remove(elements.([]string), index)
+		setElements(elements)
 	}
 
-	todoList = TodoList(goat.Props{
+	component_1602885801659547044 := TodoList(goat.Props{
 		"elements":     elements,
 		"handleDelete": handleDelete,
 	})
 
-	blockGenerator = func(currentProps goat.Props) goat.Block {
+	derivedProps = &goat.Props{"inputValue": inputValue, "component_1602885801659547044": component_1602885801659547044, "elements": elements}
+	for k, v := range props {
+		(*derivedProps)[k] = v
+	}
+
+	block8604571377814938500generator = func(currentProps goat.Props) goat.Block {
 		return goat.BlockElement(func(p goat.Props) goat.Vnode {
-			return goat.CreateVirtualElements("div",
-				goat.Props{"class": "p-4 text-white"},
-				// Header and Description
-				goat.CreateVirtualElements("h1",
-					goat.Props{"class": "text-3xl font-bold mb-2"},
-					goat.CreateVirtualElements("text", nil, &goat.TextOrElement{
-						StringValue: "Todo List App",
-					}),
-				),
-				goat.CreateVirtualElements("p",
-					goat.Props{"class": "mb-4"},
-					goat.CreateVirtualElements("text", nil, &goat.TextOrElement{
-						StringValue: "A simple todo list app built using Goat VDOM and Go.",
-					}),
-				),
-				// Input and Button
-				goat.CreateVirtualElements("input",
-					goat.Props{"class": "border text-black border-white p-2 mr-4", "@input": handleChange,
-						"value": goat.Get("value")},
-				),
-				goat.CreateVirtualElements("button", goat.Props{
-					"class":  "bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded",
-					"@click": handleClick,
+			return goat.CreateVirtualElements("div", goat.Props{}, goat.CreateVirtualElements("div", goat.Props{"class": "\"p-4 text-white\""}, goat.CreateVirtualElements("h1", goat.Props{"class": "\"text-3xl font-bold mb-2\""}, goat.CreateVirtualElements("text", nil,
+				&goat.TextOrElement{
+					StringValue: "\n        Todo List App\n    ",
+					Element:     nil,
 				},
-					goat.CreateVirtualElements("text", nil, &goat.TextOrElement{
-						StringValue: "Add",
-						Element:     nil,
-					}),
-				),
-				// Todo List
-				goat.Get("todoList"),
-			)
+			)), goat.CreateVirtualElements("p", goat.Props{"class": "\"mb-4\""}, goat.CreateVirtualElements("text", nil,
+				&goat.TextOrElement{
+					StringValue: "\n        A simple todo list app built using Goat VDOM and Go.\n    ",
+					Element:     nil,
+				},
+			)), goat.CreateVirtualElements("input", goat.Props{"class": "\"border text-black border-white p-2 mr-4\"", "value": goat.Get("inputValue"), "@input": handleChange}), goat.CreateVirtualElements("button", goat.Props{"class": "\"bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded\"", "@click": handleClick}, goat.CreateVirtualElements("text", nil,
+				&goat.TextOrElement{
+					StringValue: "\n        Add\n    ",
+					Element:     nil,
+				},
+			)), goat.Get("component_1602885801659547044")))
 		}, currentProps)()
 	}
 
-	block = blockGenerator(goat.Props{
-		"value":    text,
-		"todoList": todoList,
-		"elements": elements,
-	})
+	context.CreateBlock = block8604571377814938500generator
+	block := block8604571377814938500generator(*derivedProps)
+	block8604571377814938500 = &block
 
-	return block
+	context.Block = block8604571377814938500
+	context.Props = derivedProps
+
+	return *block8604571377814938500
 }
 
 func main() {

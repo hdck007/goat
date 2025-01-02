@@ -1,10 +1,59 @@
+<imports>
+    import TodoElement from "./todoelement.index"
+</imports>
+
 <script>
-    count := 1
+    elements, setElements := createState([]string{})
+    inputValue, setInputValue := createState("")
+
+    remove := func(slice []string, index int) []string {
+	    return append(slice[:index], slice[index+1:]...)
+    }
+
+    handleChange := js.FuncOf(func(this js.Value, args []js.Value) interface{} {
+		text = args[0].Get("target").Get("value").String()
+		setInputValue(text)
+		return nil
+	})
+
+    handleClick := js.FuncOf(func(this js.Value, args []js.Value) interface{} {
+		if inputValue == "" {
+			return nil
+		}
+		elements := append(elements, inputValue)
+        setElements(elements)
+        setInputValue(")
+		return nil
+	})
+
+    handleDelete := func(index int) {
+		elements = remove(elements, index)
+        setElements(elements)
+	}
+
 </script>
 
 <div>
-    <h1 class="text-red" >
-    Hello {count}, How are you? {doubledCount}
-    <Map elements={elements} render={func} />
+    <div class="p-4 text-white">
+    <h1 class="text-3xl font-bold mb-2">
+        Todo List App
     </h1>
+    <p class="mb-4">
+        A simple todo list app built using Goat VDOM and Go.
+    </p>
+    <input
+        class="border text-black border-white p-2 mr-4"
+        value={inputValue}
+        @input={handleChange} 
+    />
+    <button
+        class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+        @click={handleClick}
+    >
+        Add
+    </button>
+    <For elements={elements}>
+        <TodoElement handleDelete={handleDelete} />
+    </For>
+    </div>
 </div>

@@ -1,6 +1,7 @@
 package goat
 
 import (
+	"fmt"
 	"reflect"
 	"syscall/js"
 )
@@ -17,7 +18,7 @@ type ArrayBlock struct {
 	elementKey string
 	props      Props
 	children   []Block
-	Patch      func(element []string)
+	Patch      func(element []interface{})
 	Mount      func(js.Value) js.Value
 }
 
@@ -36,6 +37,7 @@ func BlockElement(fn func(originalProp Props) Vnode, props Props) func() Block {
 		parentOfCurrent := js.Undefined()
 
 		mount := func(parent js.Value) js.Value {
+
 			el := root.Call("cloneNode", true)
 			parent.Call("appendChild", el)
 			element = el
@@ -79,7 +81,7 @@ func BlockElement(fn func(originalProp Props) Vnode, props Props) func() Block {
 						value.(ArrayBlock).Mount(thisEl)
 						continue
 					}
-					textNode := js.Global().Get("document").Call("createTextNode", value)
+					textNode := js.Global().Get("document").Call("createTextNode", value.(string))
 					thisEl.Call("insertBefore", textNode, thisEl.Get("childNodes").Index(edit.index))
 				}
 			}
@@ -106,6 +108,8 @@ func BlockElement(fn func(originalProp Props) Vnode, props Props) func() Block {
 					value := props[edit.key]
 					newValue := newBlock.props[edit.key]
 
+					fmt.Println(edit, value, newValue)
+
 					if value == newValue {
 						continue
 					}
@@ -130,7 +134,19 @@ func BlockElement(fn func(originalProp Props) Vnode, props Props) func() Block {
 				}
 
 				if reflect.TypeOf(value).String() == "goat.ArrayBlock" {
-					value.(ArrayBlock).Patch(newBlock.props[newBlock.props[(newBlock.edits)[editIndex].getChildEditValue().key].(ArrayBlock).elementKey].([]string))
+
+					elements := newBlock.props[newBlock.props[(newBlock.edits)[editIndex].getChildEditValue().key].(ArrayBlock).elementKey]
+
+					val := reflect.ValueOf(elements)
+
+					if val.Kind() == reflect.Slice {
+						newElements := make([]interface{}, 0)
+						for i := 0; i < val.Len(); i++ {
+							newElements = append(newElements, val.Index(i).Interface())
+
+						}
+						value.(ArrayBlock).Patch(newElements)
+					}
 					continue
 				}
 
@@ -162,7 +178,7 @@ func BlockElement(fn func(originalProp Props) Vnode, props Props) func() Block {
 
 func ArrayBlockElement(
 	elementKey string,
-	rendererFunc func(element string, index int) Block,
+	rendererFunc func(element interface{}, index int) Block,
 	props Props,
 ) func() ArrayBlock {
 	children := make([]Block, 0)
@@ -176,7 +192,7 @@ func ArrayBlockElement(
 
 	arrayBlock := ArrayBlock{
 		elementKey: elementKey,
-		Patch:      func(elements []string) {},
+		Patch:      func(elements []interface{}) {},
 		Mount:      func(js.Value) js.Value { return js.Null() },
 		children:   children,
 		props:      props,
@@ -192,7 +208,7 @@ func ArrayBlockElement(
 			return element
 		}
 
-		patch := func(elements []string) {
+		patch := func(elements []interface{}) {
 			oldChildren := arrayBlock.children
 			newChildren := make([]Block, 0)
 
