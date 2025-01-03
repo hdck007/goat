@@ -1,7 +1,6 @@
 package goat
 
 import (
-	"fmt"
 	"reflect"
 	"syscall/js"
 )
@@ -81,7 +80,7 @@ func BlockElement(fn func(originalProp Props) Vnode, props Props) func() Block {
 						value.(ArrayBlock).Mount(thisEl)
 						continue
 					}
-					textNode := js.Global().Get("document").Call("createTextNode", value.(string))
+					textNode := js.Global().Get("document").Call("createTextNode", value)
 					thisEl.Call("insertBefore", textNode, thisEl.Get("childNodes").Index(edit.index))
 				}
 			}
@@ -107,8 +106,6 @@ func BlockElement(fn func(originalProp Props) Vnode, props Props) func() Block {
 					edit := editUnionObject.getAttributeEditValue()
 					value := props[edit.key]
 					newValue := newBlock.props[edit.key]
-
-					fmt.Println(edit, value, newValue)
 
 					if value == newValue {
 						continue
